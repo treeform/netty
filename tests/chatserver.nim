@@ -9,7 +9,7 @@ while true:
   for connection in server.deadConnections:
     echo "[dead] ", connection.address
   for packet in server.packets:
-    echo packet.data
+    echo "[msg]", packet.data
     # send packet data to all connections
     for connection in server.connections:
       connection.send(packet.data)
