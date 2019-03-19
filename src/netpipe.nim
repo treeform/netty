@@ -1,5 +1,4 @@
 import hashes, nativesockets, net, tables, times, streams, random, sequtils
-import print
 #import netpipe/osrandom
 
 
@@ -317,8 +316,8 @@ proc readParts(reactor: Reactor) =
       success = reactor.socket.recvFrom(data, maxUdpPacket + headerSize, host, port)
     except:
       break
-    if success == -1:
-      echo "failed to recv", $reactor.address
+    if success < headerSize:
+      echo "failed to recv ", $reactor.address
       break
 
     var part = Part()
@@ -329,7 +328,7 @@ proc readParts(reactor: Reactor) =
     var stream = newStringStream(data)
     var magic = stream.readUint32()
     if magic == punchMagic:
-      #print "got punched from", host, port
+      #echo "got punched from", host, port
       continue
 
     part.sequenceNum = stream.readUint32()
