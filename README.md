@@ -22,7 +22,7 @@ TCP is really bad for short latency sensitive messages. TCP was designed for thr
 | congestion control        | yes   | no       | yes     |
 
 
-# Server/Client example
+# Echo Server/Client example
 
 ## server.nim
 
