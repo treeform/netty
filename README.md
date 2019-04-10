@@ -10,7 +10,7 @@ TCP is really bad for short latency sensitive messages. TCP was designed for thr
 
 | feature                   | TCP   | UDP      | netpipe |
 | ------------------------- | ----- | -------- | ------- |
-| designed for low letnacy  | no    | yes      | yes     |
+| designed for low latency  | no    | yes      | yes     |
 | designed for throughput   | yes   | no       | no      |
 | packet framing            | no    | yes      | yes     |
 | packet ordering           | yes   | no       | yes     |
