@@ -1,6 +1,6 @@
 # NetPipe - reliable UDP connection for Nim.
 
-NetPipe is a reliable connection over UDP amed at games. Normally UDP packets can get duplicated, dropped, or come out of order. NetPipe makes sure packets are not duplicated, re-sends them if they get dropped. Makes sure all packets come in order. UDP packets might also get split if they are above 512 bytes and also can fail to be sent if they are bigger than 1-2k. NetPipe breaks up big packets and sends them in pieces making sure each piece comes reliably in order. Finally sometimes it's impossible for two clients to communicate direclty because of NATs, but NetPipe provides UDP hole punching which allows them to connect.
+NetPipe is a reliable connection over UDP aimed at games. Normally UDP packets can get duplicated, dropped, or come out of order. NetPipe makes sure packets are not duplicated, re-sends them if they get dropped. Makes sure all packets come in order. UDP packets might also get split if they are above 512 bytes and also can fail to be sent if they are bigger than 1-2k. NetPipe breaks up big packets and sends them in pieces making sure each piece comes reliably in order. Finally sometimes it's impossible for two clients to communicate direclty because of NATs, but NetPipe provides UDP hole punching which allows them to connect.
 
 ## Is netpipe a reimplementation of TCP?
 
