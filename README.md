@@ -1,15 +1,26 @@
 # NetPipe - reliable UDP connection for Nim.
 
-Reliable connection over UDP. UDP packets can get duplicated, dropped, or come out of order. NetPipe makes sure packets are not duplicated, resends them if they get dropepd. Makse sure all packets come in order. UDP packets might also get split if they are above 512 bytes and also can fail to be sent if they are bigger then 1-2k. NetPipe breaks up big packets and sends them in pices making sure each pice comes in order and reliably. Finally some times its impossible for two clients to communicate direclty because of NATs, but NetPipe provides UDP hole punching which allows them to connect.
+NetPipe is a reliable connection over UDP amed at games. Normally UDP packets can get duplicated, dropped, or come out of order. NetPipe makes sure packets are not duplicated, re-sends them if they get dropped. Makes sure all packets come in order. UDP packets might also get split if they are above 512 bytes and also can fail to be sent if they are bigger than 1-2k. NetPipe breaks up big packets and sends them in pieces making sure each piece comes reliably in order. Finally sometimes it's impossible for two clients to communicate direclty because of NATs, but NetPipe provides UDP hole punching which allows them to connect.
 
-Features:
-* packet ordering
-* packet splitting
-* packet retry
-* packet deduplication
-* packet splitting and stiticing backup
-* hole punch through.
-* automatic handling of connects and disconnects
+## Is netpipe a reimplementation of TCP?
+
+TCP is really bad for short latency sensitive messages. TCP was designed for throughput (downloading files) not latency (games). Netpipe will resend stuff faster than TCP, netpipe will not buffer and you also get nat punch-through (which TCP does not have). Netpipe is basically "like TCP but for games".
+
+## Features:
+
+| feature                   | TCP   | UDP      | netpipe |
+| ------------------------- | ----- | -------- | ------- |
+| designed for low letnacy  | no    | yes      | yes     |
+| designed for throughput   | yes   | no       | no      |
+| packet framing            | no    | yes      | yes     |
+| packet ordering           | yes   | no       | yes     |
+| packet splitting          | yes   | no       | yes     |
+| packet retry              | yes   | no       | yes     |
+| packet deduplication      | yes   | no       | yes     |
+| hole punch through        | no    | yes      | yes     |
+| connection handling       | yes   | no       | yes     |
+| congestion control        | yes   | no       | yes     |
+
 
 # Server/Client example
 
