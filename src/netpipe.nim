@@ -2,6 +2,7 @@ import hashes, nativesockets, net, tables, times, streams, random, sequtils
 import print
 #import netpipe/osrandom
 
+randomize()
 
 export Port
 
