@@ -22,7 +22,7 @@ var
 proc readSingleChar(interval: tuple[a: int]) {.thread.} =
   while true:
     singleChar = getch()
-createThread(thread, readSingleChar, (0,))
+createThread(thread, readSingleChar, (0, ))
 
 # main loop
 var line: string
