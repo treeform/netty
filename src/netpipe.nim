@@ -17,12 +17,12 @@ var
 
 type
   Address* = object
-    ## A host/port of the client
+    ## A host/port of the client.
     host*: string
     port*: Port
 
   Reactor* = ref object
-    ## Main networking system that can make or recive connections
+    ## Main networking system that can make or recive connections.
     address*: Address
     socket*: Socket
     simDropRate: float
@@ -36,7 +36,7 @@ type
     packets*: seq[Packet]
 
   Connection* = ref object
-    ## Single connection from this reactor to another reactor
+    ## Single connection from this reactor to another reactor.
     reactor*: Reactor
     connected*: bool
     address*: Address
@@ -47,7 +47,7 @@ type
     recvSequenceNum: int
 
   Part* = ref object
-    ## Part of a packet
+    ## Part of a packet.
     sequenceNum*: uint32 # which packet seq is it
     rid: uint32          # random number that is this connect
     numParts*: uint16    # number of parts
@@ -65,7 +65,7 @@ type
     data*: string
 
   Packet* = ref object
-    ## Full packet
+    ## Full packet.
     connection*: Connection
     sequenceNum*: uint32 # which packet seq is it
     secret*: uint32
@@ -76,23 +76,23 @@ proc newAddress*(host: string, port: int): Address =
   result.port = Port(port)
 
 proc `$`*(address: Address): string =
-  ## Address to string
+  ## Address to string.
   &"{address.host}:{address.port.int}"
 
 proc `$`*(conn: Connection): string =
-  ## Connection to string
+  ## Connection to string.
   &"Connection({conn.address})"
 
 proc `$`*(part: Part): string =
-  ## Part to string
+  ## Part to string.
   &"Part({part.sequenceNum}:{part.partNum}/{part.numParts} ACK:{part.acked})"
 
 proc `$`*(packet: Packet): string =
-  ## Part to string
+  ## Part to string.
   &"Packet(from: {packet.connection.address} #{packet.sequenceNum}, size:{len(packet.data)})"
 
 proc hash*(x: Address): Hash =
-  ## Computes a Hash from and address
+  ## Computes a Hash from and address.
   var h: Hash = 0
   h = h !& hash(x.host)
   h = h !& hash(x.port)
@@ -100,7 +100,7 @@ proc hash*(x: Address): Hash =
 
 proc removeBack[T](s: var seq[T], what: T) =
   ## Remove an element in a seq, by copying the last element
-  ## over its pos and shrinking seq by 1
+  ## over its pos and shrinking seq by 1.
   if s.len == 0: return
   for i in 0..<s.len:
     if s[i] == what:
@@ -111,7 +111,7 @@ proc removeBack[T](s: var seq[T], what: T) =
 proc tick*(reactor: Reactor)
 
 proc newReactor*(address: Address): Reactor =
-  ## Creates a new reactor with address
+  ## Creates a new reactor with address.
   var reactor = Reactor()
   reactor.address = address
   reactor.socket = newSocket(Domain.AF_INET, SockType.SOCK_DGRAM,
@@ -127,11 +127,11 @@ proc newReactor*(address: Address): Reactor =
   return reactor
 
 proc newReactor*(host: string, port: int): Reactor =
-  ## Creates a new reactor with host and port
+  ## Creates a new reactor with host and port.
   newReactor(newAddress(host, port))
 
 proc newReactor*(): Reactor =
-  ## Creates a new reactor with system chosen address
+  ## Creates a new reactor with system chosen address.
   newReactor("", 0)
 
 proc newConnection*(socket: Reactor, address: Address): Connection =
@@ -188,7 +188,7 @@ proc read*(conn: Connection): Packet =
   return packet
 
 proc divideAndSend(reactor: Reactor, conn: Connection, data: string) =
-  ## Divides a packet into parts and gets it ready to be sent
+  ## Divides a packet into parts and gets it ready to be sent.
   var parts = newSeq[Part]()
 
   assert data.len != 0
@@ -213,7 +213,7 @@ proc divideAndSend(reactor: Reactor, conn: Connection, data: string) =
   inc conn.sendSequenceNum
 
 proc rawSend(reactor: Reactor, address: Address, data: string) =
-  ## Low level send to a socket
+  ## Low level send to a socket.
   if reactor.simDropRate != 0:
     # drop % of packets
     if rand(1.0) <= reactor.simDropRate:
@@ -275,7 +275,7 @@ proc sendSpecail(reactor: Reactor, conn: Connection, part: Part,
 
 proc deleteAckedParts(reactor: Reactor) =
   for conn in reactor.connections:
-    ## look for packets that have been acked already
+    # look for packets that have been acked already
     var number = 0
     for part in conn.sentParts:
       if not part.acked:
@@ -375,7 +375,7 @@ proc combinePackets(reactor: Reactor) =
         break
 
 proc tick*(reactor: Reactor) =
-  ## send and recives packets
+  ## Send and receives packets.
   reactor.time = epochTime()
   reactor.newConnections.setLen(0)
   reactor.deadConnections.setLen(0)
@@ -386,7 +386,7 @@ proc tick*(reactor: Reactor) =
   reactor.combinePackets()
 
 proc connect*(reactor: Reactor, address: Address): Connection =
-  ## Starts a new connectino to an address
+  ## Starts a new connectino to an address.
   var conn = newConnection(reactor, address)
   conn.connected = true
   reactor.connections.add(conn)
@@ -394,7 +394,7 @@ proc connect*(reactor: Reactor, address: Address): Connection =
   return conn
 
 proc connect*(reactor: Reactor, host: string, port: int): Connection =
-  ## Starts a new connectino to an address
+  ## Starts a new connectino to an address.
   reactor.connect(newAddress(host, port))
 
 proc send*(conn: Connection, data: string) =
@@ -406,11 +406,11 @@ proc disconnect*(conn: Connection) =
   # TOOD Send disc packet
 
 proc punchThrough*(reactor: Reactor, address: Address) =
-  ## Tries to punch through to host/port
+  ## Tries to punch through to host/port.
   for i in 0..10:
     reactor.socket.sendTo(address.host, address.port, char(0) & char(0) & char(
         0) & char(0) & "punch through")
 
 proc punchThrough*(reactor: Reactor, host: string, port: int) =
-  ## Tries to punch through to host/port
+  ## Tries to punch through to host/port.
   reactor.punchThrough(newAddress(host, port))
