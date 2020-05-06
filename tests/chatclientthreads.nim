@@ -60,5 +60,3 @@ while true:
 
     # reset character
     singleChar = char(0)
-
-
