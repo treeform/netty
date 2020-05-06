@@ -1,4 +1,4 @@
-import hashes, nativesockets, net, random, sequtils, streams, tables, times, strformat
+import hashes, nativesockets, net, random, sequtils, streams, strformat, tables, times
 
 export Port
 
@@ -22,7 +22,7 @@ type
     port*: Port
 
   Reactor* = ref object
-    ## Main networking system that can make or receive connections.
+    ## Main networking system that can open or receive connections.
     address*: Address
     socket*: Socket
     simDropRate: float
@@ -92,7 +92,7 @@ proc `$`*(packet: Packet): string =
   &"Packet(from: {packet.connection.address} #{packet.sequenceNum}, size:{len(packet.data)})"
 
 proc hash*(x: Address): Hash =
-  ## Computes a Hash from and address.
+  ## Computes a hash for the address.
   hash((x.host, x.port))
 
 proc removeBack[T](s: var seq[T], what: T) =
@@ -111,11 +111,15 @@ proc newReactor*(address: Address): Reactor =
   ## Creates a new reactor with address.
   var reactor = Reactor()
   reactor.address = address
-  reactor.socket = newSocket(Domain.AF_INET, SockType.SOCK_DGRAM,
-      Protocol.IPPROTO_UDP, false)
+  reactor.socket = newSocket(
+    Domain.AF_INET,
+    SockType.SOCK_DGRAM,
+    Protocol.IPPROTO_UDP,
+    buffered = false
+  )
   reactor.socket.getFd().setBlocking(false)
   reactor.socket.bindAddr(reactor.address.port, reactor.address.host)
-  let (hostLocal, portLocal) = reactor.socket.getLocalAddr()
+  let (_, portLocal) = reactor.socket.getLocalAddr()
   reactor.address.port = portLocal
   reactor.connections = @[]
   reactor.simDropRate = 0.0 #
