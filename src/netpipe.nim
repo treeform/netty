@@ -1,30 +1,28 @@
-import hashes, nativesockets, net, tables, times, streams, random, sequtils
-#import netpipe/osrandom
-
-randomize()
+import hashes, nativesockets, net, random, sequtils, streams, strformat, tables, times
 
 export Port
+
+randomize()
 
 const
   partMagic = uint32(0xFFDDFF33)
   ackMagic = uint32(0xFF33FF11)
   punchMagic = uint32(0x00000000)
+  headerSize = 4 + 4 + 4 + 2 + 2
+  ackTime = 0.250     ## Seconds to wait before sending the packet again.
+  connTimeout = 10.00 ## Seconds to wait until timing-out the connection.
 
-const headerSize = 4 + 4 + 4 + 2 + 2
-var maxUdpPacket = 508 - headerSize
-
-
-const ackTime = 0.250 # time to wait before sending the packet again
-const connTimeout = 10.00 # how long to wait until time out the connection
+var
+  maxUdpPacket = 508 - headerSize
 
 type
   Address* = object
-    ## A host/port of the client
+    ## A host/port of the client.
     host*: string
     port*: Port
 
   Reactor* = ref object
-    ## Main networking system that can make or recive connections
+    ## Main networking system that can open or receive connections.
     address*: Address
     socket*: Socket
     simDropRate: float
@@ -38,7 +36,7 @@ type
     packets*: seq[Packet]
 
   Connection* = ref object
-    ## Single connection from this reactor to another reactor
+    ## Single connection from this reactor to another reactor.
     reactor*: Reactor
     connected*: bool
     address*: Address
@@ -49,11 +47,11 @@ type
     recvSequenceNum: int
 
   Part* = ref object
-    ## Part of a packet
+    ## Part of a packet.
     sequenceNum*: uint32 # which packet seq is it
-    rid: uint32 # random number that is this connect
-    numParts*: uint16 # number of parts
-    partNum*: uint16 # which par is it
+    rid: uint32          # random number that is this connect
+    numParts*: uint16    # number of parts
+    partNum*: uint16     # which par is it
 
     # sending
     firstTime: float64
@@ -62,54 +60,44 @@ type
     acked: bool
     ackedTime: float64
 
-    # reciving
+    # receiving
     produced: bool
     data*: string
 
   Packet* = ref object
-    ## Full packet
+    ## Full packet.
     connection*: Connection
     sequenceNum*: uint32 # which packet seq is it
     secret*: uint32
     data*: string
 
-
 proc newAddress*(host: string, port: int): Address =
   result.host = host
   result.port = Port(port)
 
-
 proc `$`*(address: Address): string =
-  ## Address to string
-  $address.host & ":" & $(address.port.int)
-
+  ## Address to string.
+  &"{address.host}:{address.port.int}"
 
 proc `$`*(conn: Connection): string =
-  ## Connection to string
-  "Connection(" & $conn.address & ")"
-
+  ## Connection to string.
+  &"Connection({conn.address})"
 
 proc `$`*(part: Part): string =
-  ## Part to string
-  "Part(" & $part.sequenceNum & ":" & $part.partNum & "/" & $part.numParts & " ACK:" & $part.acked & ")"
-
+  ## Part to string.
+  &"Part({part.sequenceNum}:{part.partNum}/{part.numParts} ACK:{part.acked})"
 
 proc `$`*(packet: Packet): string =
-  ## Part to string
-  "Packet(from: " & $packet.connection.address & " #" & $packet.sequenceNum & ", size:" & $packet.data.len & ")"
-
+  ## Part to string.
+  &"Packet(from: {packet.connection.address} #{packet.sequenceNum}, size:{len(packet.data)})"
 
 proc hash*(x: Address): Hash =
-  ## Computes a Hash from and address
-  var h: Hash = 0
-  h = h !& hash(x.host)
-  h = h !& hash(x.port)
-  result = !$h
-
+  ## Computes a hash for the address.
+  hash((x.host, x.port))
 
 proc removeBack[T](s: var seq[T], what: T) =
   ## Remove an element in a seq, by copying the last element
-  ## over its pos and shrinking seq by 1
+  ## over its pos and shrinking seq by 1.
   if s.len == 0: return
   for i in 0..<s.len:
     if s[i] == what:
@@ -117,18 +105,21 @@ proc removeBack[T](s: var seq[T], what: T) =
       s.setLen(s.len - 1)
       return
 
-
 proc tick*(reactor: Reactor)
 
-
 proc newReactor*(address: Address): Reactor =
-  ## Creates a new reactor with address
+  ## Creates a new reactor with address.
   var reactor = Reactor()
   reactor.address = address
-  reactor.socket = newSocket(Domain.AF_INET, SockType.SOCK_DGRAM, Protocol.IPPROTO_UDP, false)
+  reactor.socket = newSocket(
+    Domain.AF_INET,
+    SockType.SOCK_DGRAM,
+    Protocol.IPPROTO_UDP,
+    buffered = false
+  )
   reactor.socket.getFd().setBlocking(false)
   reactor.socket.bindAddr(reactor.address.port, reactor.address.host)
-  let (hostLocal, portLocal) = reactor.socket.getLocalAddr()
+  let (_, portLocal) = reactor.socket.getLocalAddr()
   reactor.address.port = portLocal
   reactor.connections = @[]
   reactor.simDropRate = 0.0 #
@@ -136,16 +127,13 @@ proc newReactor*(address: Address): Reactor =
   reactor.tick()
   return reactor
 
-
 proc newReactor*(host: string, port: int): Reactor =
-  ## Creates a new reactor with host and port
+  ## Creates a new reactor with host and port.
   newReactor(newAddress(host, port))
 
-
 proc newReactor*(): Reactor =
-  ## Creates a new reactor with system chosen address
+  ## Creates a new reactor with system chosen address.
   newReactor("", 0)
-
 
 proc newConnection*(socket: Reactor, address: Address): Connection =
   var conn = Connection()
@@ -156,18 +144,15 @@ proc newConnection*(socket: Reactor, address: Address): Connection =
   conn.recvParts = @[]
   return conn
 
-
 proc getConn(reactor: Reactor, address: Address): Connection =
   for conn in reactor.connections.mitems:
     if conn.address == address:
       return conn
 
-
 proc getConn(reactor: Reactor, address: Address, rid: uint32): Connection =
   for conn in reactor.connections.mitems:
     if conn.address == address and conn.rid == rid:
       return conn
-
 
 proc read*(conn: Connection): Packet =
   if conn.recvParts.len == 0:
@@ -203,9 +188,8 @@ proc read*(conn: Connection): Packet =
 
   return packet
 
-
 proc divideAndSend(reactor: Reactor, conn: Connection, data: string) =
-  ## Divides a packet into parts and gets it ready to be sent
+  ## Divides a packet into parts and gets it ready to be sent.
   var parts = newSeq[Part]()
 
   assert data.len != 0
@@ -229,9 +213,8 @@ proc divideAndSend(reactor: Reactor, conn: Connection, data: string) =
     conn.sentParts.add(part)
   inc conn.sendSequenceNum
 
-
 proc rawSend(reactor: Reactor, address: Address, data: string) =
-  ## Low level send to a socket
+  ## Low level send to a socket.
   if reactor.simDropRate != 0:
     # drop % of packets
     if rand(1.0) <= reactor.simDropRate:
@@ -240,7 +223,6 @@ proc rawSend(reactor: Reactor, address: Address, data: string) =
     reactor.socket.sendTo(address.host, address.port, data)
   except:
     return
-
 
 proc sendNeededParts(reactor: Reactor) =
   var i = 0
@@ -280,8 +262,8 @@ proc sendNeededParts(reactor: Reactor) =
         part.lastTime = reactor.time
         reactor.rawSend(conn.address, data)
 
-
-proc sendSpecail(reactor: Reactor, conn: Connection, part: Part, magic: uint32) =
+proc sendSpecail(reactor: Reactor, conn: Connection, part: Part,
+    magic: uint32) =
   var packetData = newStringStream()
   packetData.write(magic)
   packetData.write(part.sequenceNum)
@@ -292,10 +274,9 @@ proc sendSpecail(reactor: Reactor, conn: Connection, part: Part, magic: uint32) 
   var data = packetData.readAll()
   reactor.rawSend(conn.address, data)
 
-
 proc deleteAckedParts(reactor: Reactor) =
   for conn in reactor.connections:
-    ## look for packets that have been acked already
+    # look for packets that have been acked already
     var number = 0
     for part in conn.sentParts:
       if not part.acked:
@@ -303,7 +284,6 @@ proc deleteAckedParts(reactor: Reactor) =
       inc number
     if number > 0:
       conn.sentParts.delete(0, number-1)
-
 
 proc readParts(reactor: Reactor) =
   var data = newStringOfCap(maxUdpPacket)
@@ -386,7 +366,6 @@ proc readParts(reactor: Reactor) =
       discard
       #echo "got junk"
 
-
 proc combinePackets(reactor: Reactor) =
   for conn in reactor.connections:
     while true:
@@ -396,9 +375,8 @@ proc combinePackets(reactor: Reactor) =
       else:
         break
 
-
 proc tick*(reactor: Reactor) =
-  ## send and recives packets
+  ## Sends and receives packets.
   reactor.time = epochTime()
   reactor.newConnections.setLen(0)
   reactor.deadConnections.setLen(0)
@@ -408,37 +386,32 @@ proc tick*(reactor: Reactor) =
   reactor.readParts()
   reactor.combinePackets()
 
-
 proc connect*(reactor: Reactor, address: Address): Connection =
-  ## Starts a new connectino to an address
+  ## Starts a new connection to an address.
   var conn = newConnection(reactor, address)
   conn.connected = true
   reactor.connections.add(conn)
   reactor.newConnections.add(conn)
   return conn
 
-
 proc connect*(reactor: Reactor, host: string, port: int): Connection =
-  ## Starts a new connectino to an address
+  ## Starts a new connection to an address.
   reactor.connect(newAddress(host, port))
-
 
 proc send*(conn: Connection, data: string) =
   if conn.connected == true:
     conn.reactor.divideAndSend(conn, data)
 
-
 proc disconnect*(conn: Connection) =
   conn.connected = false
   # TOOD Send disc packet
 
-
 proc punchThrough*(reactor: Reactor, address: Address) =
-  ## Tries to punch through to host/port
+  ## Tries to punch through to host/port.
   for i in 0..10:
-    reactor.socket.sendTo(address.host, address.port, char(0) & char(0) & char(0) & char(0) & "punch through")
-
+    reactor.socket.sendTo(address.host, address.port, char(0) & char(0) & char(
+        0) & char(0) & "punch through")
 
 proc punchThrough*(reactor: Reactor, host: string, port: int) =
-  ## Tries to punch through to host/port
+  ## Tries to punch through to host/port.
   reactor.punchThrough(newAddress(host, port))

@@ -1,14 +1,12 @@
 # nim c -r --verbosity:0 tests\netpipetest > tests\netpipe.test.txt; git diff tests\netpipe.test.txt
 
+import os, print, sequtils, strformat
 
 include netpipe
-import print, strformat, sequtils, os
 
 echo "Testing netpipe"
 
 randomize(2001)
-
-
 
 proc display(name: string, r: Reactor) =
   echo "REACTOR: ", name, " (", r.address, ")"
@@ -20,8 +18,6 @@ proc display(name: string, r: Reactor) =
       echo "    RECV PART: ", part
   for packet in r.packets:
     echo "  PACKET: ", packet
-
-
 
 block:
   echo "simple test"
@@ -35,7 +31,6 @@ block:
     server.tick()
     for packet in server.packets:
       print "PACKET ", packet.data
-
 
 block:
   echo "main test"
@@ -100,7 +95,6 @@ block:
       print "got", packet.data.len
       print "they match", packet.data == buffer
 
-
 block:
   echo "many packets stress test"
 
@@ -126,7 +120,6 @@ block:
   # make sure all packets made it
   assert dataToSend.len == 0
   print dataToSend
-
 
 block:
   echo "many packets stress test with packet loss 10%"
@@ -157,8 +150,6 @@ block:
   print dataToSend
   assert dataToSend.len == 0
 
-
-
 block:
   echo "many clients stress test"
 
@@ -185,7 +176,6 @@ block:
   # make sure all packets made it
   assert dataToSend.len == 0
   print dataToSend
-
 
 block:
   echo "punch through test"
