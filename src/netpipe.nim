@@ -9,8 +9,8 @@ const
   ackMagic = uint32(0xFF33FF11)
   punchMagic = uint32(0x00000000)
   headerSize = 4 + 4 + 4 + 2 + 2
-  ackTime = 0.250     ## Time to wait before sending the packet again.
-  connTimeout = 10.00 ## How long to wait until timing-out the connection.
+  ackTime = 0.250     ## Seconds to wait before sending the packet again.
+  connTimeout = 10.00 ## Seconds to wait until timing-out the connection.
 
 var
   maxUdpPacket = 508 - headerSize
@@ -22,7 +22,7 @@ type
     port*: Port
 
   Reactor* = ref object
-    ## Main networking system that can make or recive connections.
+    ## Main networking system that can make or receive connections.
     address*: Address
     socket*: Socket
     simDropRate: float
@@ -60,7 +60,7 @@ type
     acked: bool
     ackedTime: float64
 
-    # reciving
+    # receiving
     produced: bool
     data*: string
 
@@ -93,10 +93,7 @@ proc `$`*(packet: Packet): string =
 
 proc hash*(x: Address): Hash =
   ## Computes a Hash from and address.
-  var h: Hash = 0
-  h = h !& hash(x.host)
-  h = h !& hash(x.port)
-  result = !$h
+  hash((x.host, x.port))
 
 proc removeBack[T](s: var seq[T], what: T) =
   ## Remove an element in a seq, by copying the last element
@@ -375,7 +372,7 @@ proc combinePackets(reactor: Reactor) =
         break
 
 proc tick*(reactor: Reactor) =
-  ## Send and receives packets.
+  ## Sends and receives packets.
   reactor.time = epochTime()
   reactor.newConnections.setLen(0)
   reactor.deadConnections.setLen(0)
@@ -386,7 +383,7 @@ proc tick*(reactor: Reactor) =
   reactor.combinePackets()
 
 proc connect*(reactor: Reactor, address: Address): Connection =
-  ## Starts a new connectino to an address.
+  ## Starts a new connection to an address.
   var conn = newConnection(reactor, address)
   conn.connected = true
   reactor.connections.add(conn)
@@ -394,7 +391,7 @@ proc connect*(reactor: Reactor, address: Address): Connection =
   return conn
 
 proc connect*(reactor: Reactor, host: string, port: int): Connection =
-  ## Starts a new connectino to an address.
+  ## Starts a new connection to an address.
   reactor.connect(newAddress(host, port))
 
 proc send*(conn: Connection, data: string) =
