@@ -1,4 +1,4 @@
-import hashes, nativesockets, net, random, sequtils, streams, tables, times
+import hashes, nativesockets, net, random, sequtils, streams, tables, times, strformat
 
 export Port
 
@@ -9,9 +9,11 @@ const
   ackMagic = uint32(0xFF33FF11)
   punchMagic = uint32(0x00000000)
   headerSize = 4 + 4 + 4 + 2 + 2
-  maxUdpPacket = 508 - headerSize
   ackTime = 0.250     ## Time to wait before sending the packet again.
   connTimeout = 10.00 ## How long to wait until timing-out the connection.
+
+var
+  maxUdpPacket = 508 - headerSize
 
 type
   Address* = object
@@ -75,21 +77,19 @@ proc newAddress*(host: string, port: int): Address =
 
 proc `$`*(address: Address): string =
   ## Address to string
-  $address.host & ":" & $(address.port.int)
+  &"{address.host}:{address.port.int}"
 
 proc `$`*(conn: Connection): string =
   ## Connection to string
-  "Connection(" & $conn.address & ")"
+  &"Connection({conn.address})"
 
 proc `$`*(part: Part): string =
   ## Part to string
-  "Part(" & $part.sequenceNum & ":" & $part.partNum & "/" & $part.numParts &
-      " ACK:" & $part.acked & ")"
+  &"Part({part.sequenceNum}:{part.partNum}/{part.numParts} ACK:{part.acked})"
 
 proc `$`*(packet: Packet): string =
   ## Part to string
-  "Packet(from: " & $packet.connection.address & " #" & $packet.sequenceNum &
-      ", size:" & $packet.data.len & ")"
+  &"Packet(from: {packet.connection.address} #{packet.sequenceNum}, size:{len(packet.data)})"
 
 proc hash*(x: Address): Hash =
   ## Computes a Hash from and address
