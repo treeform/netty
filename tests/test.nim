@@ -12,25 +12,23 @@ proc display(name: string, r: Reactor) =
   s.writeLine "REACTOR: ", name, " (", r.address, ")"
   for c in r.connections:
     s.writeLine "  CONN: ", c.address
-    for part in c.sentParts:
-      s.writeLine "    SENT PART: ", part
+    for part in c.sendParts:
+      s.writeLine "    SEND PART: ", part
     for part in c.recvParts:
       s.writeLine "    RECV PART: ", part
-  for packet in r.packets:
-    s.writeLine "  PACKET: ", packet
+  for msg in r.messages:
+    s.writeLine "  MESSAGE: ", msg
 
 block:
   s.writeLine "simple test"
   var server = newReactor("127.0.0.1", 1999)
   var client = newReactor()
-  maxUdpPacket = 100
   var c2s = client.connect(server.address)
-  c2s.send("hi")
-  for i in 0..10:
-    client.tick()
-    server.tick()
-    for packet in server.packets:
-      s.writeLine "PACKET ", packet.data
+  client.send(c2s, "hi")
+  client.tick()
+  server.tick()
+  for msg in server.messages:
+    s.writeLine "MESSAGE ", msg.data
 
 block:
   s.writeLine "main test"
@@ -49,17 +47,17 @@ block:
 
   s.writeLine "client --------- 'hey you' ----------> server"
 
-  c2s.send("hey you")
+  client.send(c2s, "hey you")
   client.tick()
   server.tick()
 
-  s.writeLine "server should have packet"
+  s.writeLine "server should have message"
   s.writeLine "client should have part ACK:false"
 
   display("server", server)
   display("client", client)
 
-  server.tick() # get packet, ack packet
+  server.tick() # get message, ack message
   client.tick() # get ack
 
   s.writeLine "client should have part ACK:true"
@@ -67,62 +65,59 @@ block:
   display("server", server)
   display("client", client)
 
-  s.writeLine "rid should match"
-  assert server.connections[0].rid == client.connections[0].rid
-
-  c2s.disconnect()
+  s.writeLine "id should match"
+  assert server.connections[0].id == client.connections[0].id
 
 block:
-  s.writeLine "testing large packet"
+  s.writeLine "testing large message"
 
   var server = newReactor("127.0.0.1", 2002)
   var client = newReactor("127.0.0.1", 2003)
 
-  maxUdpPacket = 100
   s.writeLine maxUdpPacket
   var buffer = "large:"
   for i in 0..<1000:
     buffer.add "<data>"
   s.writeLine "sent", buffer.len
   var c2s = client.connect(server.address)
-  c2s.send(buffer)
+  client.send(c2s, buffer)
 
   for i in 0..10:
     client.tick()
     server.tick()
 
-    for packet in server.packets:
-      s.writeLine "got", packet.data.len
-      s.writeLine "they match", packet.data == buffer
-
-# block:
-#   s.writeLine "many packets stress test"
-
-#   var dataToSend = newSeq[string]()
-#   s.writeLine "1000 packets"
-#   for i in 0..1000:
-#     dataToSend.add &"data #{i}, its cool!"
-
-#   # stress
-#   var server = newReactor("127.0.0.1", 2004)
-#   var client = newReactor("127.0.0.1", 2005)
-#   var c2s = client.connect(server.address)
-#   for d in dataToSend:
-#     c2s.send(d)
-#   for i in 0..1000:
-#     client.tick()
-#     server.tick()
-#     for packet in server.packets:
-#       var index = dataToSend.find(packet.data)
-#       # make sure packet is there
-#       assert index != -1
-#       dataToSend.delete(index)
-#   # make sure all packets made it
-#   assert dataToSend.len == 0
-#   s.writeLine dataToSend
+    for msg in server.messages:
+      s.writeLine "got", msg.data.len
+      s.writeLine "they match", msg.data == buffer
 
 block:
-  s.writeLine "many packets stress test with packet loss 10%"
+  s.writeLine "many messages stress test"
+
+  var dataToSend = newSeq[string]()
+  s.writeLine "1000 messages"
+  for i in 0..1000:
+    dataToSend.add &"data #{i}, its cool!"
+
+  # stress
+  var server = newReactor("127.0.0.1", 2004)
+  var client = newReactor("127.0.0.1", 2005)
+  var c2s = client.connect(server.address)
+  for d in dataToSend:
+    client.send(c2s, d)
+  for i in 0..1000:
+    client.tick()
+    server.tick()
+    for msg in server.messages:
+      var index = dataToSend.find(msg.data)
+      # make sure message is there
+      assert index != -1
+      dataToSend.delete(index)
+  # make sure all messages made it
+  assert dataToSend.len == 0
+  s.writeLine dataToSend
+
+block:
+  s.writeLine "many messages stress test with packet loss 10%"
 
   var dataToSend = newSeq[string]()
   for i in 0..1000:
@@ -131,22 +126,22 @@ block:
   # stress
   var server = newReactor("127.0.0.1", 2006)
   var client = newReactor("127.0.0.1", 2007)
-  client.simDropRate = 0.2 # 20% packet loss rate is broken for most things
+  client.debug.dropRate = 0.2 # 20% packet loss rate is broken for most things
   s.writeLine "20% drop rate"
   var c2s = client.connect(server.address)
   for d in dataToSend:
-    c2s.send(d)
+    client.send(c2s, d)
   for i in 0..1000:
     client.tick()
     server.tick()
     sleep(10)
-    for packet in server.packets:
-      var index = dataToSend.find(packet.data)
-      # make sure packet is there
+    for msg in server.messages:
+      var index = dataToSend.find(msg.data)
+      # make sure message is there
       assert index != -1
       dataToSend.delete(index)
     if dataToSend.len == 0: break
-  # make sure all packets made it
+  # make sure all messages made it
   s.writeLine dataToSend
   assert dataToSend.len == 0
 
@@ -155,7 +150,7 @@ block:
 
   s.writeLine "100 clients"
   var dataToSend = newSeq[string]()
-  for i in 0..100:
+  for i in 0 ..< 100:
     dataToSend.add &"data #{i}, its cool!"
 
   # stress
@@ -163,17 +158,19 @@ block:
   for d in dataToSend:
     var client = newReactor()
     var c2s = client.connect(server.address)
-    c2s.send(d)
+    client.send(c2s, d)
     client.tick()
 
-  for i in 0..100:
-    server.tick()
-    for packet in server.packets:
-      var index = dataToSend.find(packet.data)
-      # make sure packet is there
-      assert index != -1
-      dataToSend.delete(index)
-  # make sure all packets made it
+  server.tick()
+
+  assert len(server.newConnections) == 100
+
+  for msg in server.messages:
+    var index = dataToSend.find(msg.data)
+    # make sure message is there
+    assert index != -1
+    dataToSend.delete(index)
+  # make sure all messages made it
   assert dataToSend.len == 0
   s.writeLine dataToSend
 
@@ -181,16 +178,13 @@ block:
   s.writeLine "punch through test"
   var server = newReactor("127.0.0.1", 2009)
   var client = newReactor()
-  maxUdpPacket = 100
   var c2s = client.connect(server.address)
   client.punchThrough(server.address)
-  c2s.send("hi")
-  for i in 0..10:
-    client.tick()
-    server.tick()
-    for packet in server.packets:
-      s.writeLine "PACKET ", packet.data
-
+  client.send(c2s, "hi")
+  client.tick()
+  server.tick()
+  for msg in server.messages:
+    s.writeLine "MESSAGE ", msg.data
 
 s.close()
 
