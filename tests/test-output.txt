@@ -40,3 +40,4 @@ many clients stress test
 
 punch through test
 MESSAGE hi
+single client disconnect

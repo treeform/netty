@@ -163,6 +163,7 @@ block:
 
   server.tick()
 
+  assert len(server.connections) == 100
   assert len(server.newConnections) == 100
 
   for msg in server.messages:
@@ -173,6 +174,25 @@ block:
   # make sure all messages made it
   assert dataToSend.len == 0
   s.writeLine dataToSend
+
+  var shouldBeDead: seq[uint32]
+
+  for i in 0 ..< 50:
+    let conn = server.connections[i]
+    shouldBeDead.add(conn.id)
+    server.send(server.connections[i], "timeout_trigger")
+  server.tick()
+
+  # Cause timeouts
+  server.tick(epochTime() + connTimeout)
+
+  assert len(server.connections) == 50
+  assert len(server.deadConnections) == 50
+
+  for conn in server.deadConnections:
+    shouldBeDead.delete(shouldBeDead.find(conn.id))
+
+  assert len(shouldBeDead) == 0
 
 block:
   s.writeLine "punch through test"
@@ -185,6 +205,20 @@ block:
   server.tick()
   for msg in server.messages:
     s.writeLine "MESSAGE ", msg.data
+
+block:
+  s.writeLine "single client disconnect"
+  var server = newReactor("127.0.0.1", 2010)
+  var client = newReactor()
+  var c2s = client.connect(server.address)
+  client.send(c2s, "hi")
+  client.tick()
+  server.tick()
+  assert len(server.messages) == 1
+  assert len(server.connections) == 1
+  client.tick(time = epochTime() + connTimeout)
+  assert len(client.deadConnections) == 1
+  assert len(client.connections) == 0
 
 s.close()
 

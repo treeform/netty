@@ -92,36 +92,6 @@ func hash*(x: Address): Hash =
 proc genId(): uint32 {.inline.} =
   rand(high(uint32).int).uint32
 
-proc tick*(reactor: Reactor)
-
-proc newReactor*(address: Address): Reactor =
-  ## Creates a new reactor with address.
-  result = Reactor()
-  result.id = genId()
-
-  result.address = address
-  result.socket = newSocket(
-    Domain.AF_INET,
-    SockType.SOCK_DGRAM,
-    Protocol.IPPROTO_UDP,
-    buffered = false
-  )
-  result.socket.getFd().setBlocking(false)
-  result.socket.bindAddr(result.address.port, result.address.host)
-
-  let (_, portLocal) = result.socket.getLocalAddr()
-  result.address.port = portLocal
-
-  result.tick()
-
-proc newReactor*(host: string, port: int): Reactor =
-  ## Creates a new reactor with host and port.
-  newReactor(initAddress(host, port))
-
-proc newReactor*(): Reactor =
-  ## Creates a new reactor with system chosen address.
-  newReactor("", 0)
-
 proc newConnection(reactor: Reactor, address: Address): Connection =
   result = Connection()
   result.id = genId()
@@ -190,6 +160,7 @@ proc divideAndQueue(reactor: Reactor, conn: Connection, data: string) =
 
   for part in parts.mitems:
     part.numParts = len(parts).uint16
+    part.queuedTime = reactor.time
 
   conn.sendParts.add(parts)
   inc(conn.sendSequenceNum)
@@ -214,12 +185,12 @@ proc sendQueuedParts(reactor: Reactor) =
       if inFlight > maxInFlight:
         break
 
-      if part.acked or (part.sentTime + ackTime > reactor.time):
+      if part.acked or (part.sentTime + ackTime >= reactor.time):
         continue
 
-      if part.queuedTime + connTimeout > reactor.time:
+      if part.queuedTime + connTimeout <= reactor.time:
         reactor.deadConnections.add(conn)
-        reactor.connections.delete(i, i)
+        reactor.connections.delete(i)
         dec(i)
         break
 
@@ -361,8 +332,8 @@ proc combineParts(reactor: Reactor) =
       else:
         break
 
-proc tick*(reactor: Reactor) =
-  reactor.time = epochTime()
+proc tick*(reactor: Reactor, time = epochTime()) =
+  reactor.time = time
   reactor.newConnections.setLen(0)
   reactor.deadConnections.setLen(0)
   reactor.messages.setLen(0)
@@ -399,3 +370,31 @@ proc punchThrough*(reactor: Reactor, address: Address) =
 proc punchThrough*(reactor: Reactor, host: string, port: int) =
   ## Tries to punch through to host/port.
   reactor.punchThrough(initAddress(host, port))
+
+proc newReactor*(address: Address): Reactor =
+  ## Creates a new reactor with address.
+  result = Reactor()
+  result.id = genId()
+
+  result.address = address
+  result.socket = newSocket(
+    Domain.AF_INET,
+    SockType.SOCK_DGRAM,
+    Protocol.IPPROTO_UDP,
+    buffered = false
+  )
+  result.socket.getFd().setBlocking(false)
+  result.socket.bindAddr(result.address.port, result.address.host)
+
+  let (_, portLocal) = result.socket.getLocalAddr()
+  result.address.port = portLocal
+
+  result.tick()
+
+proc newReactor*(host: string, port: int): Reactor =
+  ## Creates a new reactor with host and port.
+  newReactor(initAddress(host, port))
+
+proc newReactor*(): Reactor =
+  ## Creates a new reactor with system chosen address.
+  newReactor("", 0)
