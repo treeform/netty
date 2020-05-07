@@ -109,7 +109,7 @@ block:
   var c2s = client.connect(server.address)
   for d in dataToSend:
     c2s.send(d)
-  for i in 0..100:
+  for i in 0..1000:
     client.tick()
     server.tick()
     for packet in server.packets:
