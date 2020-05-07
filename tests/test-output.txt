@@ -29,9 +29,6 @@ testing large packet
 sent6006
 got6006
 they matchtrue
-many packets stress test
-1000 packets
-
 many packets stress test with packet loss 10%
 20% drop rate
 
