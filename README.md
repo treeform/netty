@@ -1,14 +1,14 @@
-# NetPipe - reliable UDP connection for Nim.
+# Netty - reliable UDP connection for Nim.
 
-NetPipe is a reliable connection over UDP aimed at games. Normally UDP packets can get duplicated, dropped, or come out of order. NetPipe makes sure packets are not duplicated, re-sends them if they get dropped, and all packets come in order. UDP packets might also get split if they are above 512 bytes and also can fail to be sent if they are bigger than 1-2k. NetPipe breaks up big packets and sends them in pieces making sure each piece comes reliably in order. Finally sometimes it's impossible for two clients to communicate direclty with TCP because of NATs, but NetPipe provides hole punching which allows them to connect.
+Netty is a reliable connection over UDP aimed at games. Normally UDP packets can get duplicated, dropped, or come out of order. Netty makes sure packets are not duplicated, re-sends them if they get dropped, and all packets come in order. UDP packets might also get split if they are above 512 bytes and also can fail to be sent if they are bigger than 1-2k. Netty breaks up big packets and sends them in pieces making sure each piece comes reliably in order. Finally sometimes it's impossible for two clients to communicate direclty with TCP because of NATs, but Netty provides hole punching which allows them to connect.
 
-## Is netpipe a reimplementation of TCP?
+## Is Netty a reimplementation of TCP?
 
-TCP is really bad for short latency sensitive messages. TCP was designed for throughput (downloading files) not latency (games). Netpipe will resend stuff faster than TCP, netpipe will not buffer and you also get nat punch-through (which TCP does not have). Netpipe is basically "like TCP but for games". You should not be using NetPipe if you are will be sending large mount of data. By default NetPipe is capped at 250K of data in flight.
+TCP is really bad for short latency sensitive messages. TCP was designed for throughput (downloading files) not latency (games). Netty will resend stuff faster than TCP, Netty will not buffer and you also get nat punch-through (which TCP does not have). Netty is basically "like TCP but for games". You should not be using Netty if you are will be sending large mount of data. By default Netty is capped at 250K of data in flight.
 
 ## Features:
 
-| feature                   | TCP   | UDP      | netpipe |
+| feature                   | TCP   | UDP      | Netty |
 | ------------------------- | ----- | -------- | ------- |
 | designed for low latency  | no    | yes      | yes     |
 | designed for throughput   | yes   | no       | no      |
@@ -27,7 +27,7 @@ TCP is really bad for short latency sensitive messages. TCP was designed for thr
 ## server.nim
 
 ```nim
-import netpipe
+import Netty
 
 # listen for a connection on localhost port 1999
 var server = newReactor("127.0.0.1", 1999)
@@ -48,7 +48,7 @@ while true:
 ## client.nim
 
 ```nim
-import netpipe
+import Netty
 
 # create connection
 var client = newReactor()
@@ -71,7 +71,7 @@ while true:
 ## chatserver.nim
 
 ```nim
-import netpipe
+import Netty
 
 var server = newReactor("127.0.0.1", 2001)
 echo "Listenting for UDP on 127.0.0.1:2001"
@@ -91,7 +91,7 @@ while true:
 ## chatclient.nim
 
 ```nim
-import netpipe
+import Netty
 
 var client = newReactor()
 var connection = client.connect("127.0.0.1", 2001)
