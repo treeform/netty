@@ -95,31 +95,31 @@ block:
       s.writeLine "got", packet.data.len
       s.writeLine "they match", packet.data == buffer
 
-block:
-  s.writeLine "many packets stress test"
+# block:
+#   s.writeLine "many packets stress test"
 
-  var dataToSend = newSeq[string]()
-  s.writeLine "1000 packets"
-  for i in 0..1000:
-    dataToSend.add &"data #{i}, its cool!"
+#   var dataToSend = newSeq[string]()
+#   s.writeLine "1000 packets"
+#   for i in 0..1000:
+#     dataToSend.add &"data #{i}, its cool!"
 
-  # stress
-  var server = newReactor("127.0.0.1", 2004)
-  var client = newReactor("127.0.0.1", 2005)
-  var c2s = client.connect(server.address)
-  for d in dataToSend:
-    c2s.send(d)
-  for i in 0..1000:
-    client.tick()
-    server.tick()
-    for packet in server.packets:
-      var index = dataToSend.find(packet.data)
-      # make sure packet is there
-      assert index != -1
-      dataToSend.delete(index)
-  # make sure all packets made it
-  assert dataToSend.len == 0
-  s.writeLine dataToSend
+#   # stress
+#   var server = newReactor("127.0.0.1", 2004)
+#   var client = newReactor("127.0.0.1", 2005)
+#   var c2s = client.connect(server.address)
+#   for d in dataToSend:
+#     c2s.send(d)
+#   for i in 0..1000:
+#     client.tick()
+#     server.tick()
+#     for packet in server.packets:
+#       var index = dataToSend.find(packet.data)
+#       # make sure packet is there
+#       assert index != -1
+#       dataToSend.delete(index)
+#   # make sure all packets made it
+#   assert dataToSend.len == 0
+#   s.writeLine dataToSend
 
 block:
   s.writeLine "many packets stress test with packet loss 10%"
