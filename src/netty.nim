@@ -369,6 +369,8 @@ proc readParts(reactor: Reactor) =
 proc combinePackets(reactor: Reactor) =
   for conn in reactor.connections:
     while true:
+      if conn == nil:
+        break
       var packet = conn.read()
       if packet != nil:
         reactor.packets.add(packet)
