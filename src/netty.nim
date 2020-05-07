@@ -292,7 +292,7 @@ proc readParts(reactor: Reactor) =
   var success: int
 
   # read 1000 parts
-  for i in 0..<1000:
+  for i in 0 ..< 1000:
     try:
       success = reactor.socket.recvFrom(data, maxUdpPacket + headerSize, host, port)
     except:
