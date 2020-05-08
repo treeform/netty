@@ -189,7 +189,7 @@ proc sendNeededParts(reactor: Reactor) =
       if inFlight > reactor.maxInFlight:
         break
 
-      if part.acked or (part.sentTime + ackTime >= reactor.time):
+      if part.acked or (part.sentTime + ackTime > reactor.time):
         continue
 
       if part.queuedTime + connTimeout <= reactor.time:

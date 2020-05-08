@@ -266,6 +266,27 @@ block:
 
   assert server.messages.len == 0, &"len: {server.messages.len}"
 
+block:
+  s.writeLine "testing retry"
+
+  var server = newReactor("127.0.0.1", 2013)
+  var client = newReactor("127.0.0.1", 2014)
+
+  var c2s = client.connect(server.address)
+  client.send(c2s, "test")
+
+  client.tick()
+
+  assert c2s.sendParts.len == 1
+
+  let firstSentTime = c2s.sendParts[0].sentTime
+
+  client.debug.tickTime = epochTime() + ackTime
+
+  client.tick()
+
+  assert c2s.sendParts[0].sentTime != firstSentTime # We sent the part again
+
 s.close()
 
 let (outp, _) = execCmdEx("git diff tests/test-output.txt")
