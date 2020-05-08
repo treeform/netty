@@ -1,6 +1,6 @@
 ## Convert any nim objects, numbers, strings, refs to and from binary format.
 
-import streams, snappy
+import snappy, streams
 
 proc compress(s: string): string =
   cast[string](snappy.compress(cast[seq[byte]](s)))

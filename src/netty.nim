@@ -7,8 +7,8 @@ const
   ackMagic = uint32(0xFF33FF11)
   punchMagic = uint32(0x00000000)
   headerSize = 4 + 4 + 4 + 2 + 2
-  ackTime = 0.250     ## Seconds to wait before sending the packet again.
-  connTimeout = 10.00 ## Seconds to wait until timing-out the connection.
+  ackTime = 0.250      ## Seconds to wait before sending the packet again.
+  connTimeout = 10.00  ## Seconds to wait until timing-out the connection.
   defaultMaxUdpPacket = 508 - headerSize
   maxInFlight = 25_000 ## Max bytes in-flight on the socket.
 
@@ -32,7 +32,7 @@ type
     debug*: DebugConfig
 
     connections: seq[Connection]
-    newConnections*: seq[Connection] ## New connections since last tick
+    newConnections*: seq[Connection]  ## New connections since last tick
     deadConnections*: seq[Connection] ## Dead connections since last tick
     messages*: seq[Message]
 
@@ -41,17 +41,17 @@ type
     reactorId*: uint32
     address*: Address
 
-    sendParts: seq[Part] ## Parts queued to be sent.
-    recvParts: seq[Part] ## Parts that have been read from the socket.
+    sendParts: seq[Part]    ## Parts queued to be sent.
+    recvParts: seq[Part]    ## Parts that have been read from the socket.
     sendSequenceNum: uint32 ## Next message sequence num when sending.
     recvSequenceNum: uint32 ## Next message sequence number to receive.
 
   Part = ref object
     ## Part of a Message.
     sequenceNum: uint32 ## The message sequence number.
-    connId: uint32 ## The id of the connection this belongs to.
-    numParts: uint16 ## How many parts there are to the Message this part of.
-    partNum: uint16 ## The part of the Message this is.
+    connId: uint32      ## The id of the connection this belongs to.
+    numParts: uint16    ## How many parts there are to the Message this part of.
+    partNum: uint16     ## The part of the Message this is.
     data: string
 
     # Sending

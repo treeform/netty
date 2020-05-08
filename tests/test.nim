@@ -1,4 +1,4 @@
-import strformat, osproc, random, streams, os
+import os, osproc, random, streams, strformat
 
 include netty
 
