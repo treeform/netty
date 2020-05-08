@@ -77,15 +77,15 @@ func `$`*(address: Address): string =
   ## Address to string.
   &"{address.host}:{address.port.int}"
 
-proc `$`*(conn: Connection): string =
+func `$`*(conn: Connection): string =
   ## Connection to string.
   &"Connection({conn.address}, id:{conn.id}, reactor: {conn.reactorId})"
 
-proc `$`*(part: Part): string =
+func `$`*(part: Part): string =
   ## Part to string.
   &"Part({part.sequenceNum}:{part.partNum}/{part.numParts} ACK:{part.acked})"
 
-proc `$`*(msg: Message): string =
+func `$`*(msg: Message): string =
   ## Message to string.
   &"Message(from: {msg.conn.address} #{msg.sequenceNum}, size:{msg.data.len})"
 
