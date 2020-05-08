@@ -245,13 +245,14 @@ block:
   server.tick() # receives 100 parts, sends acks back
 
   assert server.messages.len == 1, &"len: {server.messages.len}"
+  assert c2s.stats.inFlight < client.maxInFlight,
+    &"stats.inFlight: {c2s.stats.inFlight}"
 
-  client.tick() # process the 100 acks, 22 parts left not yet sent
+  client.tick() # process the 100 acks, 22 parts left in flight
 
   assert c2s.sendParts.len == 22
+  assert c2s.stats.inFlight == 2106, &"stats.inFlight: {c2s.stats.inFlight}"
 
-  server.tick()
-  client.tick() # send the last 22 parts
   server.tick() # process the last 22 parts, send 22 acks
 
   assert server.messages.len == 1, &"len: {server.messages.len}"
@@ -259,12 +260,8 @@ block:
   client.tick() # receive the 22 acks
 
   assert c2s.sendParts.len == 0
+  assert c2s.stats.inFlight == 0, &"stats.inFlight: {c2s.stats.inFlight}"
 
-  server.tick()
-  client.tick()
-  server.tick()
-
-  assert server.messages.len == 0, &"len: {server.messages.len}"
 
 block:
   s.writeLine "testing retry"

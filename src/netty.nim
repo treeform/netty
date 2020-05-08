@@ -37,10 +37,14 @@ type
     deadConnections*: seq[Connection] ## Dead connections since last tick
     messages*: seq[Message]
 
+  ConnectionStats* = object
+    inFlight: int ## How many bytes are currently in flight.
+
   Connection* = ref object
     id*: uint32
     reactorId*: uint32
     address*: Address
+    stats*: ConnectionStats
 
     sendParts: seq[Part]    ## Parts queued to be sent.
     recvParts: seq[Part]    ## Parts that have been read from the socket.
@@ -185,8 +189,7 @@ proc sendNeededParts(reactor: Reactor) =
     let conn = reactor.connections[i]
     var inFlight: int
     for part in conn.sendParts:
-      inFlight += part.data.len
-      if inFlight > reactor.maxInFlight:
+      if inFlight + part.data.len > reactor.maxInFlight:
         break
 
       if part.acked or (part.sentTime + ackTime > reactor.time):
@@ -197,6 +200,8 @@ proc sendNeededParts(reactor: Reactor) =
         reactor.connections.delete(i)
         dec(i)
         break
+
+      inFlight += part.data.len
 
       part.sentTime = reactor.time
 
@@ -211,6 +216,7 @@ proc sendNeededParts(reactor: Reactor) =
       let packet = stream.readAll()
       reactor.rawSend(conn.address, packet)
 
+    conn.stats.inFlight = inFlight
     inc i
 
 proc sendSpecial(
