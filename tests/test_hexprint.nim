@@ -1,4 +1,4 @@
-import netty/hexprint, streams, osproc
+import netty/hexprint, osproc, streams
 
 var s = newFileStream("tests/test_hexprint-output.txt", fmWrite)
 
