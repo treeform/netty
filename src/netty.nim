@@ -2,8 +2,6 @@ import hashes, nativesockets, net, random, sequtils, streams, strformat, times
 
 export Port
 
-randomize()
-
 const
   partMagic = uint32(0xFFDDFF33)
   ackMagic = uint32(0xFF33FF11)
@@ -11,8 +9,8 @@ const
   headerSize = 4 + 4 + 4 + 2 + 2
   ackTime = 0.250     ## Seconds to wait before sending the packet again.
   connTimeout = 10.00 ## Seconds to wait until timing-out the connection.
-  maxUdpPacket = 508 - headerSize
-  maxInFlight = 250_000 ## Max bytes in-flight on the socket.
+  defaultMaxUdpPacket = 508 - headerSize
+  maxInFlight = 25_000 ## Max bytes in-flight on the socket.
 
 type
   Address* = object
@@ -21,7 +19,9 @@ type
     port*: Port
 
   DebugConfig* = object
-    dropRate*: float32 ## [0, 1] % simulated drop rate
+    tickTime*: float64 ## Override the time processed by calls to tick.
+    dropRate*: float32 ## [0, 1] % simulated drop rate.
+    maxUdpPacket*: int ## Max size of each outgoing UDP packet in bytes.
 
   Reactor* = ref object
     ## Main networking system that can open or receive connections.
@@ -65,6 +65,9 @@ type
     sequenceNum*: uint32
     data*: string
 
+var
+  r = initRand(1988)
+
 func initAddress*(host: string, port: int): Address =
   result.host = host
   result.port = Port(port)
@@ -83,14 +86,14 @@ proc `$`*(part: Part): string =
 
 proc `$`*(msg: Message): string =
   ## Message to string.
-  &"Message(from: {msg.conn.address} #{msg.sequenceNum}, size:{len(msg.data)})"
+  &"Message(from: {msg.conn.address} #{msg.sequenceNum}, size:{msg.data.len})"
 
 func hash*(x: Address): Hash =
   ## Computes a hash for the address.
   hash((x.host, x.port))
 
 proc genId(): uint32 {.inline.} =
-  rand(high(uint32).int).uint32
+  r.rand(high(uint32).int).uint32
 
 proc newConnection(reactor: Reactor, address: Address): Connection =
   result = Connection()
@@ -104,14 +107,14 @@ func getConn(reactor: Reactor, connId: uint32): Connection =
       return conn
 
 proc read(conn: Connection): (bool, Message) =
-  if len(conn.recvParts) == 0:
+  if conn.recvParts.len == 0:
     return
 
   let
     sequenceNum = conn.recvSequenceNum
     numParts = conn.recvParts[0].numParts
 
-  if len(conn.recvParts) < numParts.int:
+  if conn.recvParts.len < numParts.int:
     return
 
   var good = true
@@ -132,38 +135,38 @@ proc read(conn: Connection): (bool, Message) =
   for i in 0.uint16 ..< numParts:
     result[1].data.add(conn.recvParts[i].data)
 
-  inc(conn.recvSequenceNum)
+  inc conn.recvSequenceNum
   conn.recvParts.delete(0, numParts - 1)
 
-proc divideAndQueue(reactor: Reactor, conn: Connection, data: string) =
+proc divideAndSend(reactor: Reactor, conn: Connection, data: string) =
   ## Divides a packet into parts and gets it ready to be sent.
-  assert len(data) != 0
+  assert data.len != 0
 
   var
     parts: seq[Part]
     partNum: uint16
     at: int
 
-  while at < len(data):
+  while at < data.len:
     var part = Part()
     part.sequenceNum = conn.sendSequenceNum
     part.connId = conn.id
     part.partNum = partNum
-    inc(partNum)
+    inc partNum
 
-    let maxAt = min(at + maxUdpPacket, len(data))
+    let maxAt = min(at + reactor.debug.maxUdpPacket, data.len)
     part.data = data[at ..< maxAt]
     at = maxAt
     parts.add(part)
 
-  assert len(parts) < high(uint16).int
+  assert parts.len < high(uint16).int
 
   for part in parts.mitems:
-    part.numParts = len(parts).uint16
+    part.numParts = parts.len.uint16
     part.queuedTime = reactor.time
 
   conn.sendParts.add(parts)
-  inc(conn.sendSequenceNum)
+  inc conn.sendSequenceNum
 
 proc rawSend(reactor: Reactor, address: Address, packet: string) =
   ## Low level send to a socket.
@@ -175,13 +178,13 @@ proc rawSend(reactor: Reactor, address: Address, packet: string) =
   except:
     return
 
-proc sendQueuedParts(reactor: Reactor) =
+proc sendNeededParts(reactor: Reactor) =
   var i = 0
-  while i < len(reactor.connections):
+  while i < reactor.connections.len:
     let conn = reactor.connections[i]
     var inFlight: int
     for part in conn.sendParts:
-      inFlight += len(part.data)
+      inFlight += part.data.len
       if inFlight > maxInFlight:
         break
 
@@ -207,7 +210,7 @@ proc sendQueuedParts(reactor: Reactor) =
       let packet = stream.readAll()
       reactor.rawSend(conn.address, packet)
 
-    inc(i)
+    inc i
 
 proc sendSpecial(
   reactor: Reactor, conn: Connection, part: Part, magic: uint32
@@ -231,21 +234,21 @@ proc deleteAckedParts(reactor: Reactor) =
     for part in conn.sendParts:
       if not part.acked:
         break
-      inc(pos)
+      inc pos
     if pos > 0:
       conn.sendParts.delete(0, pos - 1)
 
 proc readParts(reactor: Reactor) =
   var
-    buf = newStringOfcap(maxUdpPacket)
+    buf = newStringOfcap(reactor.debug.maxUdpPacket)
     host: string
     port: Port
 
-  for _ in 0 ..< 1024:
+  for _ in 0 ..< 1000:
     var byteLen: int
     try:
       byteLen = reactor.socket.recvFrom(
-        buf, maxUdpPacket + headerSize, host, port
+        buf, reactor.debug.maxUdpPacket + headerSize, host, port
       )
     except:
       break
@@ -305,7 +308,7 @@ proc readParts(reactor: Reactor) =
             assert p.data == part.data
             break
 
-        inc(pos)
+        inc pos
 
       if pos != -1: # If not a duplicate
         conn.recvParts.insert(part, pos)
@@ -332,13 +335,17 @@ proc combineParts(reactor: Reactor) =
       else:
         break
 
-proc tick*(reactor: Reactor, time = epochTime()) =
-  reactor.time = time
+proc tick*(reactor: Reactor) =
+  if reactor.debug.tickTime != 0:
+    reactor.time = reactor.debug.tickTime
+  else:
+    reactor.time = epochTime()
+
   reactor.newConnections.setLen(0)
   reactor.deadConnections.setLen(0)
   reactor.messages.setLen(0)
 
-  reactor.sendQueuedParts()
+  reactor.sendNeededParts()
   reactor.deleteAckedParts()
   reactor.readParts()
   reactor.combineParts()
@@ -356,7 +363,7 @@ proc connect*(reactor: Reactor, host: string, port: int): Connection =
 
 proc send*(reactor: Reactor, conn: Connection, data: string) =
   assert reactor.id == conn.reactorId
-  reactor.divideAndQueue(conn, data)
+  reactor.divideAndSend(conn, data)
 
 proc punchThrough*(reactor: Reactor, address: Address) =
   ## Tries to punch through to host/port.
@@ -388,6 +395,8 @@ proc newReactor*(address: Address): Reactor =
 
   let (_, portLocal) = result.socket.getLocalAddr()
   result.address.port = portLocal
+
+  result.debug.maxUdpPacket = defaultMaxUdpPacket
 
   result.tick()
 

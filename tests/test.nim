@@ -74,7 +74,7 @@ block:
   var server = newReactor("127.0.0.1", 2002)
   var client = newReactor("127.0.0.1", 2003)
 
-  s.writeLine maxUdpPacket
+  s.writeLine client.debug.maxUdpPacket
   var buffer = "large:"
   for i in 0..<1000:
     buffer.add "<data>"
@@ -113,7 +113,7 @@ block:
       assert index != -1
       dataToSend.delete(index)
   # make sure all messages made it
-  assert dataToSend.len == 0
+  assert dataToSend.len == 0, &"datatoSend.len: {datatoSend.len}"
   s.writeLine dataToSend
 
 block:
@@ -184,7 +184,8 @@ block:
   server.tick()
 
   # Cause timeouts
-  server.tick(epochTime() + connTimeout)
+  server.debug.tickTime = epochTime() + connTimeout
+  server.tick()
 
   assert len(server.connections) == 50
   assert len(server.deadConnections) == 50
@@ -216,7 +217,8 @@ block:
   server.tick()
   assert len(server.messages) == 1
   assert len(server.connections) == 1
-  client.tick(time = epochTime() + connTimeout)
+  client.debug.tickTime = epochTime() + connTimeout
+  client.tick()
   assert len(client.deadConnections) == 1
   assert len(client.connections) == 0
 
