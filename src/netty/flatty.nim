@@ -98,6 +98,24 @@ proc fromFlatty[K, V](s: Stream, x: var Table[K, V]) =
     s.fromFlatty(v)
     x[k] = v
 
+# Arrays
+proc toFlatty[N, T](s: Stream, x: array[N, T]) =
+  for e in x:
+    s.toFlatty(e)
+
+proc fromFlatty[N, T](s: Stream, x: var array[N, T]) =
+  for i in 0 ..< x.len:
+    s.fromFlatty(x[i])
+
+# Tuples
+proc toFlatty(s: Stream, x: tuple) =
+  for _, e in x.fieldPairs:
+    s.toFlatty(e)
+
+proc fromFlatty(s: Stream, x: var tuple) =
+  for _, e in x.fieldPairs:
+    s.fromFlatty(e)
+
 proc toFlatty*[T](x: T): string =
   ## Takes structures and turns them into binary string.
   var s = newStringStream()

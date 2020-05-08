@@ -27,8 +27,8 @@ assert "乾隆己酉夏".toFlatty.fromFlatty(string) == "乾隆己酉夏"
 assert "\0\0\0\0".toFlatty.fromFlatty(string) == "\0\0\0\0"
 
 # Test arrays.
-var arr: seq[int]
-assert $(arr.toFlatty.fromFlatty(seq[int])) == $(arr)
+var seqr: seq[int]
+assert $(seqr.toFlatty.fromFlatty(seq[int])) == $(seqr)
 assert $(@[1, 2, 3].toFlatty.fromFlatty(seq[int])) == $(@[1, 2, 3])
 assert $(@[1.uint8, 2, 3].toFlatty.fromFlatty(seq[uint8])) ==
   $(@[1.uint8, 2, 3])
@@ -94,3 +94,11 @@ var table: Table[string, string]
 table["hi"] = "bye"
 table["foo"] = "bar"
 assert table.toFlatty.fromFlatty(Table[string, string]) == table
+
+# Test arrays
+var arr: array[3, int] = [1, 2, 3]
+assert arr.toFlatty.fromFlatty(array[3, int]) == arr
+
+# Test tuples
+var tup: tuple[count: int, id: byte, name: string] = (1, 2.byte, "3")
+assert tup.toFlatty.fromFlatty(tuple[count: int, id: byte, name: string]) == tup
