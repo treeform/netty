@@ -49,21 +49,21 @@ proc fromFlatty[T: enum](s: Stream, x: var T) =
 
 # Strings
 proc toFlatty(s: Stream, x: string) =
-  s.write(x.len)
+  s.write(x.len.uint32)
   s.write(x)
 
 proc fromFlatty(s: Stream, x: var string) =
-  let len = s.readInt64()
+  let len = s.readUint32()
   x = s.readStr(len.int)
 
 # Seq
 proc toFlatty[T](s: Stream, x: seq[T]) =
-  s.write(x.len.int64)
+  s.write(x.len.uint32)
   for e in x:
     s.toFlatty(e)
 
 proc fromFlatty[T](s: Stream, x: var seq[T]) =
-  let len = s.readUint64()
+  let len = s.readUint32()
   x.setLen(len)
   for i in 0 ..< len:
     s.fromFlatty(x[i])
@@ -101,13 +101,13 @@ proc fromFlatty[T: distinct](s: Stream, x: var T) =
 
 # Tables
 proc toFlatty[K, V](s: Stream, x: Table[K, V]) =
-  s.write(x.len.int64)
+  s.write(x.len.uint32)
   for k, v in x:
     s.toFlatty(k)
     s.toFlatty(v)
 
 proc fromFlatty[K, V](s: Stream, x: var Table[K, V]) =
-  let len = s.readUint64()
+  let len = s.readUint32()
   for i in 0 ..< len:
     var
       k: K
