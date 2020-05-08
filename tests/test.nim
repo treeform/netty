@@ -242,16 +242,21 @@ block:
   assert c2s.sendParts.len == 122
 
   client.tick() # can only send 100 parts due to maxInFlight and maxUdpPacket
+
+  assert c2s.stats.saturated == true
+
   server.tick() # receives 100 parts, sends acks back
 
   assert server.messages.len == 1, &"len: {server.messages.len}"
   assert c2s.stats.inFlight < client.maxInFlight,
     &"stats.inFlight: {c2s.stats.inFlight}"
+  assert c2s.stats.saturated == true
 
   client.tick() # process the 100 acks, 22 parts left in flight
 
   assert c2s.sendParts.len == 22
   assert c2s.stats.inFlight == 2106, &"stats.inFlight: {c2s.stats.inFlight}"
+  assert c2s.stats.saturated == false
 
   server.tick() # process the last 22 parts, send 22 acks
 
@@ -261,7 +266,7 @@ block:
 
   assert c2s.sendParts.len == 0
   assert c2s.stats.inFlight == 0, &"stats.inFlight: {c2s.stats.inFlight}"
-
+  assert c2s.stats.saturated == false
 
 block:
   s.writeLine "testing retry"

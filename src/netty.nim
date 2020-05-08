@@ -38,7 +38,8 @@ type
     messages*: seq[Message]
 
   ConnectionStats* = object
-    inFlight: int ## How many bytes are currently in flight.
+    inFlight: int   ## How many bytes are currently in flight.
+    saturated: bool ## If this conn cannot send until it receives acks.
 
   Connection* = ref object
     id*: uint32
@@ -187,9 +188,12 @@ proc sendNeededParts(reactor: Reactor) =
   var i = 0
   while i < reactor.connections.len:
     let conn = reactor.connections[i]
-    var inFlight: int
+    var
+      inFlight: int
+      saturated: bool
     for part in conn.sendParts:
       if inFlight + part.data.len > reactor.maxInFlight:
+        saturated = true
         break
 
       if part.acked or (part.sentTime + ackTime > reactor.time):
@@ -217,6 +221,7 @@ proc sendNeededParts(reactor: Reactor) =
       reactor.rawSend(conn.address, packet)
 
     conn.stats.inFlight = inFlight
+    conn.stats.saturated = saturated
     inc i
 
 proc sendSpecial(
