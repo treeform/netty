@@ -29,7 +29,7 @@ type
     address*: Address
     socket: Socket
     time: float64
-    maxInFlight: int                  ## Max bytes in-flight on the socket.
+    maxInFlight*: int                 ## Max bytes in-flight on the socket.
     debug*: DebugConfig
 
     connections*: seq[Connection]
