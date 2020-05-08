@@ -1,12 +1,10 @@
-import os, osproc, random, streams, strformat
+import os, osproc, streams, strformat
 
 include netty
 
 var s = newFileStream("tests/test-output.txt", fmWrite)
 
 s.writeLine "Testing netty"
-
-randomize(2001)
 
 proc display(name: string, r: Reactor) =
   s.writeLine "REACTOR: ", name, " (", r.address, ")"
