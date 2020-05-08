@@ -74,6 +74,13 @@ proc fromFlatty(s: Stream, x: var ref object) =
     for _, e in x[].fieldPairs:
       s.fromFlatty(e)
 
+# Distinct
+proc toFlatty[T: distinct](s: Stream, x: T) =
+  s.write(x)
+
+proc fromFlatty[T: distinct](s: Stream, x: var T) =
+  s.read(x)
+
 proc toFlatty*[T](x: T): string =
   ## Takes structures and turns them into binary string.
   var s = newStringStream()

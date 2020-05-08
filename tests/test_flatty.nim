@@ -82,3 +82,9 @@ assert node2.left != nil
 assert node2.left.left != nil
 assert node2.left.left.left == nil
 assert node2.right == nil
+
+# Test distinct objects
+type Ts = distinct float64
+var ts = Ts(123.123)
+func `==`(a, b: TS): bool = float64(a) == float64(b)
+assert ts.toFlatty.fromFlatty(Ts) == ts
