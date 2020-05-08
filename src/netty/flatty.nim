@@ -1,6 +1,6 @@
 ## Convert any nim objects, numbers, strings, refs to and from binary format.
 
-import snappy, streams
+import snappy, streams, tables
 
 proc compress(s: string): string =
   cast[string](snappy.compress(cast[seq[byte]](s)))
@@ -80,6 +80,23 @@ proc toFlatty[T: distinct](s: Stream, x: T) =
 
 proc fromFlatty[T: distinct](s: Stream, x: var T) =
   s.read(x)
+
+# Tables
+proc toFlatty[K, V](s: Stream, x: Table[K, V]) =
+  s.write(x.len.int64)
+  for k, v in x:
+    s.toFlatty(k)
+    s.toFlatty(v)
+
+proc fromFlatty[K, V](s: Stream, x: var Table[K, V]) =
+  let len = s.readUint64()
+  for i in 0 ..< len:
+    var
+      k: K
+      v: V
+    s.fromFlatty(k)
+    s.fromFlatty(v)
+    x[k] = v
 
 proc toFlatty*[T](x: T): string =
   ## Takes structures and turns them into binary string.

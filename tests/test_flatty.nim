@@ -1,4 +1,4 @@
-import netty/flatty
+import netty/flatty, tables
 
 # Test booleans.
 assert true.toFlatty.fromFlatty(bool) == true
@@ -88,3 +88,9 @@ type Ts = distinct float64
 var ts = Ts(123.123)
 func `==`(a, b: TS): bool = float64(a) == float64(b)
 assert ts.toFlatty.fromFlatty(Ts) == ts
+
+# Test tables
+var table: Table[string, string]
+table["hi"] = "bye"
+table["foo"] = "bar"
+assert table.toFlatty.fromFlatty(Table[string, string]) == table
