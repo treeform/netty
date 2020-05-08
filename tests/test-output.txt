@@ -17,12 +17,11 @@ REACTOR: server (127.0.0.1:2000)
 REACTOR: client (127.0.0.1:2001)
   CONN: 127.0.0.1:2000
     SEND PART: Part(0:0/1 ACK:false)
-client should have part ACK:true
+client should not have any parts now, acked parts deleted
 REACTOR: server (127.0.0.1:2000)
   CONN: 127.0.0.1:2001
 REACTOR: client (127.0.0.1:2001)
   CONN: 127.0.0.1:2000
-    SEND PART: Part(0:0/1 ACK:true)
 id should match
 testing large message
 492
@@ -41,3 +40,5 @@ many clients stress test
 punch through test
 MESSAGE hi
 single client disconnect
+testing maxUdpPacket and maxInFlight
+sent6006
