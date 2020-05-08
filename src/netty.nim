@@ -7,10 +7,10 @@ const
   ackMagic = uint32(0xFF33FF11)
   punchMagic = uint32(0x00000000)
   headerSize = 4 + 4 + 4 + 2 + 2
-  ackTime = 0.250      ## Seconds to wait before sending the packet again.
-  connTimeout = 10.00  ## Seconds to wait until timing-out the connection.
+  ackTime = 0.250     ## Seconds to wait before sending the packet again.
+  connTimeout = 10.00 ## Seconds to wait until timing-out the connection.
   defaultMaxUdpPacket = 508 - headerSize
-  maxInFlight = 25_000 ## Max bytes in-flight on the socket.
+  defaultMaxInFlight = 25_000
 
 type
   Address* = object
@@ -29,9 +29,10 @@ type
     address*: Address
     socket: Socket
     time: float64
+    maxInFlight*: int                 ## Max bytes in-flight on the socket.
     debug*: DebugConfig
 
-    connections: seq[Connection]
+    connections*: seq[Connection]
     newConnections*: seq[Connection]  ## New connections since last tick
     deadConnections*: seq[Connection] ## Dead connections since last tick
     messages*: seq[Message]
@@ -66,7 +67,7 @@ type
     data*: string
 
 var
-  r = initRand(1988)
+  r = initRand((epochTime() * 1_000_000).int)
 
 func initAddress*(host: string, port: int): Address =
   result.host = host
@@ -185,7 +186,7 @@ proc sendNeededParts(reactor: Reactor) =
     var inFlight: int
     for part in conn.sendParts:
       inFlight += part.data.len
-      if inFlight > maxInFlight:
+      if inFlight > reactor.maxInFlight:
         break
 
       if part.acked or (part.sentTime + ackTime >= reactor.time):
@@ -346,9 +347,9 @@ proc tick*(reactor: Reactor) =
   reactor.messages.setLen(0)
 
   reactor.sendNeededParts()
-  reactor.deleteAckedParts()
   reactor.readParts()
   reactor.combineParts()
+  reactor.deleteAckedParts()
 
 proc connect*(reactor: Reactor, address: Address): Connection =
   ## Starts a new connection to an address.
@@ -382,6 +383,7 @@ proc newReactor*(address: Address): Reactor =
   ## Creates a new reactor with address.
   result = Reactor()
   result.id = genId()
+  result.maxInFlight = defaultMaxInFlight
 
   result.address = address
   result.socket = newSocket(

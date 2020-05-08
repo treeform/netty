@@ -1,12 +1,10 @@
-import os, osproc, random, streams, strformat
+import os, osproc, streams, strformat
 
 include netty
 
 var s = newFileStream("tests/test-output.txt", fmWrite)
 
 s.writeLine "Testing netty"
-
-randomize(2001)
 
 proc display(name: string, r: Reactor) =
   s.writeLine "REACTOR: ", name, " (", r.address, ")"
@@ -60,7 +58,7 @@ block:
   server.tick() # get message, ack message
   client.tick() # get ack
 
-  s.writeLine "client should have part ACK:true"
+  s.writeLine "client should not have any parts now, acked parts deleted"
 
   display("server", server)
   display("client", client)
@@ -223,6 +221,50 @@ block:
   client.tick()
   assert len(client.deadConnections) == 1
   assert len(client.connections) == 0
+
+block:
+  s.writeLine "testing maxUdpPacket and maxInFlight"
+
+  var server = newReactor("127.0.0.1", 2011)
+  var client = newReactor("127.0.0.1", 2012)
+
+  client.debug.maxUdpPacket = 100
+  client.maxInFlight = 10_000
+
+  var buffer = "large:"
+  for i in 0 ..< 1000:
+    buffer.add "<data>"
+  s.writeLine "sent", buffer.len
+  var c2s = client.connect(server.address)
+  client.send(c2s, buffer)
+  client.send(c2s, buffer)
+
+  assert c2s.sendParts.len == 122
+
+  client.tick() # can only send 100 parts due to maxInFlight and maxUdpPacket
+  server.tick() # receives 100 parts, sends acks back
+
+  assert server.messages.len == 1, &"len: {server.messages.len}"
+
+  client.tick() # process the 100 acks, 22 parts left not yet sent
+
+  assert c2s.sendParts.len == 22
+
+  server.tick()
+  client.tick() # send the last 22 parts
+  server.tick() # process the last 22 parts, send 22 acks
+
+  assert server.messages.len == 1, &"len: {server.messages.len}"
+
+  client.tick() # receive the 22 acks
+
+  assert c2s.sendParts.len == 0
+
+  server.tick()
+  client.tick()
+  server.tick()
+
+  assert server.messages.len == 0, &"len: {server.messages.len}"
 
 s.close()
 
