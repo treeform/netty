@@ -33,13 +33,19 @@ type
     debug*: DebugConfig
 
     connections*: seq[Connection]
-    newConnections*: seq[Connection]  ## New connections since last tick
-    deadConnections*: seq[Connection] ## Dead connections since last tick
+    newConnections*: seq[Connection]  ## New connections since last tick.
+    deadConnections*: seq[Connection] ## Dead connections since last tick.
     messages*: seq[Message]
 
   ConnectionStats* = object
-    inFlight: int   ## How many bytes are currently in flight.
-    saturated: bool ## If this conn cannot send until it receives acks.
+    inFlight: int     ## How many bytes are currently in flight.
+    saturated: bool   ## If this conn cannot send until it receives acks.
+    latency*: float32 ## Avg conn latency.
+    throughput*: int  ## Avg conn throughput in bytes.
+
+    latencySamples: seq[float32]
+    throughputSamples: seq[(float64, int32)]
+    throughputSamplesAt: int
 
   Connection* = ref object
     id*: uint32
@@ -106,6 +112,9 @@ proc newConnection(reactor: Reactor, address: Address): Connection =
   result.id = genId()
   result.reactorId = reactor.id
   result.address = address
+
+  result.stats.latencySamples = newSeq[float32](1024)
+  result.stats.throughputSamples = newSeq[(float64, int32)](1024)
 
 func getConn(reactor: Reactor, connId: uint32): Connection =
   for conn in reactor.connections:
@@ -242,13 +251,21 @@ proc sendSpecial(
 
 proc deleteAckedParts(reactor: Reactor) =
   for conn in reactor.connections:
-    var pos = 0
+    var
+      pos, bytesAcked: int
     for part in conn.sendParts:
       if not part.acked:
         break
       inc pos
+      bytesAcked += part.data.len
     if pos > 0:
       conn.sendParts.delete(0, pos - 1)
+
+    if conn.stats.throughputSamplesAt >= conn.stats.throughputSamples.len:
+      conn.stats.throughputSamplesAt = 0
+    conn.stats.throughputSamples[conn.stats.throughputSamplesAt] =
+      (reactor.time, bytesAcked.int32)
+    inc conn.stats.throughputSamplesAt
 
 proc readParts(reactor: Reactor) =
   var
@@ -333,6 +350,9 @@ proc readParts(reactor: Reactor) =
           if not p.acked:
             p.acked = true
             p.ackedTime = reactor.time
+            conn.stats.latencySamples[
+              p.sequenceNum.int mod conn.stats.latencySamples.len
+            ] = (p.ackedTime - p.sentTime).float32
 
     else:
       # Unrecognized packet
@@ -346,6 +366,37 @@ proc combineParts(reactor: Reactor) =
         reactor.messages.add(msg)
       else:
         break
+
+proc updateStats(reactor: Reactor) =
+  for conn in reactor.connections.mitems:
+    block latency:
+      var
+        total: float32
+        divisor: int
+      for sample in conn.stats.latencySamples:
+        if sample > 0:
+          total += sample
+          inc(divisor)
+
+      conn.stats.latency = if divisor > 0: total / divisor.float32 else: 0
+
+    block throughput:
+      var
+        totalBytes: int
+        earliest = high(float64)
+        latest = 0.float64
+      for (time, bytes) in conn.stats.throughputSamples:
+        if time == 0:
+          continue
+        totalBytes += bytes
+        earliest = min(earliest, time)
+        latest = max(latest, time)
+
+      let delta = latest - earliest
+      if delta > 0:
+        conn.stats.throughput = (totalBytes.float64 / delta).int
+      else:
+        conn.stats.throughput = totalBytes
 
 proc tick*(reactor: Reactor) =
   if reactor.debug.tickTime != 0:
@@ -361,6 +412,7 @@ proc tick*(reactor: Reactor) =
   reactor.readParts()
   reactor.combineParts()
   reactor.deleteAckedParts()
+  reactor.updateStats()
 
 proc connect*(reactor: Reactor, address: Address): Connection =
   ## Starts a new connection to an address.

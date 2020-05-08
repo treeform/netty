@@ -267,6 +267,8 @@ block:
   assert c2s.sendParts.len == 0
   assert c2s.stats.inFlight == 0, &"stats.inFlight: {c2s.stats.inFlight}"
   assert c2s.stats.saturated == false
+  assert c2s.stats.latency > 0
+  assert c2s.stats.throughput > 0
 
 block:
   s.writeLine "testing retry"
