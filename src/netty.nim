@@ -31,7 +31,7 @@ type
     time: float64
     debug*: DebugConfig
 
-    connections: seq[Connection]
+    connections*: seq[Connection]
     newConnections*: seq[Connection]  ## New connections since last tick
     deadConnections*: seq[Connection] ## Dead connections since last tick
     messages*: seq[Message]
@@ -66,7 +66,7 @@ type
     data*: string
 
 var
-  r = initRand(1988)
+  r = initRand((epochTime() * 1_000_000).int)
 
 func initAddress*(host: string, port: int): Address =
   result.host = host
