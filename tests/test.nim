@@ -242,16 +242,22 @@ block:
   assert c2s.sendParts.len == 122
 
   client.tick() # can only send 100 parts due to maxInFlight and maxUdpPacket
+
+  assert c2s.stats.saturated == true
+
   server.tick() # receives 100 parts, sends acks back
 
   assert server.messages.len == 1, &"len: {server.messages.len}"
+  assert c2s.stats.inFlight < client.maxInFlight,
+    &"stats.inFlight: {c2s.stats.inFlight}"
+  assert c2s.stats.saturated == true
 
-  client.tick() # process the 100 acks, 22 parts left not yet sent
+  client.tick() # process the 100 acks, 22 parts left in flight
 
   assert c2s.sendParts.len == 22
+  assert c2s.stats.inFlight == 2106, &"stats.inFlight: {c2s.stats.inFlight}"
+  assert c2s.stats.saturated == false
 
-  server.tick()
-  client.tick() # send the last 22 parts
   server.tick() # process the last 22 parts, send 22 acks
 
   assert server.messages.len == 1, &"len: {server.messages.len}"
@@ -259,12 +265,31 @@ block:
   client.tick() # receive the 22 acks
 
   assert c2s.sendParts.len == 0
+  assert c2s.stats.inFlight == 0, &"stats.inFlight: {c2s.stats.inFlight}"
+  assert c2s.stats.saturated == false
+  assert c2s.stats.latency > 0
+  assert c2s.stats.throughput > 0
 
-  server.tick()
+block:
+  s.writeLine "testing retry"
+
+  var server = newReactor("127.0.0.1", 2013)
+  var client = newReactor("127.0.0.1", 2014)
+
+  var c2s = client.connect(server.address)
+  client.send(c2s, "test")
+
   client.tick()
-  server.tick()
 
-  assert server.messages.len == 0, &"len: {server.messages.len}"
+  assert c2s.sendParts.len == 1
+
+  let firstSentTime = c2s.sendParts[0].sentTime
+
+  client.debug.tickTime = epochTime() + ackTime
+
+  client.tick()
+
+  assert c2s.sendParts[0].sentTime != firstSentTime # We sent the part again
 
 s.close()
 
