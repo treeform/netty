@@ -328,7 +328,7 @@ proc readParts(reactor: Reactor) =
       discard
 
 proc combineParts(reactor: Reactor) =
-  for conn in reactor.connections:
+  for conn in reactor.connections.mitems:
     while true:
       let (gotMsg, msg) = conn.read()
       if gotMsg:
