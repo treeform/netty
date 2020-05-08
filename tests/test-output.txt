@@ -43,3 +43,4 @@ single client disconnect
 testing maxUdpPacket and maxInFlight
 sent6006
 testing retry
+testing junk data

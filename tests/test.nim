@@ -291,6 +291,38 @@ block:
 
   assert c2s.sendParts[0].sentTime != firstSentTime # We sent the part again
 
+block:
+  s.writeLine "testing junk data"
+
+  var server = newReactor("127.0.0.1", 2015)
+  var client = newReactor("127.0.0.1", 2016)
+
+  var c2s = client.connect(server.address)
+
+  client.rawSend(c2s.address, "asdf")
+
+  client.tick()
+  server.tick()
+
+  # No new connection, no crash
+  assert server.newConnections.len == 0
+  assert server.connections.len == 0
+
+  var stream = newStringStream()
+  stream.write(partMagic)
+  stream.write("aasdfasdfaasdfaasdfasdfsdfsdasdfasdfsaasdfasdffsadfaasdfasdfa")
+  stream.setPosition(0)
+  let packet = stream.readAll()
+
+  client.rawSend(c2s.address, packet)
+
+  client.tick()
+  server.tick()
+
+  # No new connection, no crash
+  assert server.newConnections.len == 0
+  assert server.connections.len == 0
+
 s.close()
 
 let (outp, _) = execCmdEx("git diff tests/test-output.txt")
