@@ -76,13 +76,13 @@ block:
 
   s.writeLine client.debug.maxUdpPacket
   var buffer = "large:"
-  for i in 0..<1000:
+  for i in 0 ..< 1000:
     buffer.add "<data>"
   s.writeLine "sent", buffer.len
   var c2s = client.connect(server.address)
   client.send(c2s, buffer)
 
-  for i in 0..10:
+  for i in 0 ..< 10:
     client.tick()
     server.tick()
 
@@ -95,7 +95,7 @@ block:
 
   var dataToSend = newSeq[string]()
   s.writeLine "1000 messages"
-  for i in 0..1000:
+  for i in 0 ..< 1000:
     dataToSend.add &"data #{i}, its cool!"
 
   # stress
@@ -104,14 +104,16 @@ block:
   var c2s = client.connect(server.address)
   for d in dataToSend:
     client.send(c2s, d)
-  for i in 0..1000:
+  for i in 0 ..< 1000:
     client.tick()
     server.tick()
+    sleep(10)
     for msg in server.messages:
       var index = dataToSend.find(msg.data)
       # make sure message is there
       assert index != -1
       dataToSend.delete(index)
+    if dataToSend.len == 0: break
   # make sure all messages made it
   assert dataToSend.len == 0, &"datatoSend.len: {datatoSend.len}"
   s.writeLine dataToSend
@@ -120,7 +122,7 @@ block:
   s.writeLine "many messages stress test with packet loss 10%"
 
   var dataToSend = newSeq[string]()
-  for i in 0..1000:
+  for i in 0 ..< 1000:
     dataToSend.add &"data #{i}, its cool!"
 
   # stress
@@ -131,7 +133,7 @@ block:
   var c2s = client.connect(server.address)
   for d in dataToSend:
     client.send(c2s, d)
-  for i in 0..1000:
+  for i in 0 ..< 1000:
     client.tick()
     server.tick()
     sleep(10)
