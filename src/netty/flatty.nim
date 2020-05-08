@@ -63,7 +63,7 @@ proc toFlatty[T](s: Stream, x: seq[T]) =
     s.toFlatty(e)
 
 proc fromFlatty[T](s: Stream, x: var seq[T]) =
-  let len = s.readUint64()
+  let len = s.readInt64()
   x.setLen(len)
   for i in 0 ..< len:
     s.fromFlatty(x[i])
@@ -107,7 +107,7 @@ proc toFlatty[K, V](s: Stream, x: Table[K, V]) =
     s.toFlatty(v)
 
 proc fromFlatty[K, V](s: Stream, x: var Table[K, V]) =
-  let len = s.readUint64()
+  let len = s.readInt64()
   for i in 0 ..< len:
     var
       k: K
