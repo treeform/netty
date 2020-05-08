@@ -8,6 +8,24 @@ proc compress(s: string): string =
 proc uncompress(s: string): string =
   cast[string](snappy.uncompress(cast[seq[byte]](s)))
 
+# Forward declarations.
+proc toFlatty[T](s: Stream, x: seq[T])
+proc fromFlatty[T](s: Stream, x: var seq[T])
+proc toFlatty(s: Stream, x: object)
+proc fromFlatty(s: Stream, x: var object)
+proc toFlatty(s: Stream, x: ref object)
+proc fromFlatty(s: Stream, x: var ref object)
+proc toFlatty[T: distinct](s: Stream, x: T)
+proc fromFlatty[T: distinct](s: Stream, x: var T)
+proc toFlatty[K, V](s: Stream, x: Table[K, V])
+proc fromFlatty[K, V](s: Stream, x: var Table[K, V])
+proc toFlatty[N, T](s: Stream, x: array[N, T])
+proc fromFlatty[N, T](s: Stream, x: var array[N, T])
+proc toFlatty*[T](x: T): string
+proc fromFlatty*[T](data: string, x: typedesc[T]): T
+proc toFlatty[T: tuple](s: Stream, x: T)
+proc fromFlatty[T: tuple](s: Stream, x: var T)
+
 # Booleans
 proc toFlatty(s: Stream, x: bool) =
   s.write(x.uint8)
@@ -108,11 +126,11 @@ proc fromFlatty[N, T](s: Stream, x: var array[N, T]) =
     s.fromFlatty(x[i])
 
 # Tuples
-proc toFlatty(s: Stream, x: tuple) =
+proc toFlatty[T: tuple](s: Stream, x: T) =
   for _, e in x.fieldPairs:
     s.toFlatty(e)
 
-proc fromFlatty(s: Stream, x: var tuple) =
+proc fromFlatty[T: tuple](s: Stream, x: var T) =
   for _, e in x.fieldPairs:
     s.fromFlatty(e)
 
