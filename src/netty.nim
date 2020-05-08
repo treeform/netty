@@ -7,8 +7,8 @@ const
   ackMagic = uint32(0xFF33FF11)
   punchMagic = uint32(0x00000000)
   headerSize = 4 + 4 + 4 + 2 + 2
-  ackTime = 0.250      ## Seconds to wait before sending the packet again.
-  connTimeout = 10.00  ## Seconds to wait until timing-out the connection.
+  ackTime = 0.250     ## Seconds to wait before sending the packet again.
+  connTimeout = 10.00 ## Seconds to wait until timing-out the connection.
   defaultMaxUdpPacket = 508 - headerSize
   defaultMaxInFlight = 25_000
 
@@ -29,7 +29,7 @@ type
     address*: Address
     socket: Socket
     time: float64
-    maxInFlight: int ## Max bytes in-flight on the socket.
+    maxInFlight: int                  ## Max bytes in-flight on the socket.
     debug*: DebugConfig
 
     connections*: seq[Connection]
