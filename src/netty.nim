@@ -1,6 +1,7 @@
-import hashes, nativesockets, net, random, sequtils, streams, strformat, times
+import hashes, nativesockets, net, netty/hexprint, random, sequtils, streams,
+    strformat, times
 
-export Port
+export Port, hexprint
 
 const
   partMagic = uint32(0xFFDDFF33)
