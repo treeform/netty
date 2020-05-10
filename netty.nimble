@@ -1,6 +1,6 @@
 # Package
 
-version       = "0.1.0"
+version       = "0.2.0"
 author        = "treeform"
 description   = "Netty is a reliable UDP connection for games in Nim."
 license       = "MIT"
