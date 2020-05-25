@@ -85,11 +85,11 @@ proc drawMain() =
     characters &"""
     Fps: {1/avgFrameTime}
     Network:
-      avgLatency: {connection.stats.avgLatency*1000} ms
-      maxLatency: {connection.stats.maxLatency*1000} ms
+      avgLatency: {(connection.stats.latencyTs.avg()*1000).int} ms
+      maxLatency: {(connection.stats.latencyTs.max()*1000).int} ms
       dropRate: {client.debug.dropRate*100} %
       inFlight: {connection.stats.inFlight} bytes
-      throughput: {connection.stats.throughput} bytes
+      throughput: {connection.stats.throughputTs.avg().int} bytes
     """
 
 
