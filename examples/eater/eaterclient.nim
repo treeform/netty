@@ -1,5 +1,5 @@
-import fidget, vmath, fidget/opengl/base, fidget/opengl/context, netty, random,
-  netty/flatty, tables, strformat
+import fidget, fidget/opengl/base, fidget/opengl/context, netty, netty/flatty,
+    random, strformat, tables, vmath
 
 randomize()
 
@@ -49,7 +49,7 @@ proc tickMain() =
     if p.id != myId:
       others[p.id] = p.player
       if p.id notin othersSmoothPos:
-         othersSmoothPos[p.id] = p.player.pos
+        othersSmoothPos[p.id] = p.player.pos
 
   client.tick()
 
@@ -70,11 +70,10 @@ proc drawMain() =
   ctx.drawSprite("star.png", me.pos)
 
   for id, other in others.pairs:
-    ctx.drawSprite("star.png", othersSmoothPos[id], color=color(1,0,0,1))
+    ctx.drawSprite("star.png", othersSmoothPos[id], color = color(1, 0, 0, 1))
 
   for pos in debugPosSeq:
-    ctx.drawSprite("star.png", pos, color=color(0,1,0,1), scale=0.05)
-
+    ctx.drawSprite("star.png", pos, color = color(0, 1, 0, 1), scale = 0.05)
 
   ctx.restoreTransform()
 
@@ -92,7 +91,6 @@ proc drawMain() =
       inFlight: {connection.stats.inFlight} bytes
       throughput: {connection.stats.throughputTs.avg().int} bytes
     """
-
 
 startFidget(
   draw = drawMain,

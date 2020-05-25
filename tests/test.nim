@@ -342,7 +342,6 @@ block:
   assert len(server.deadConnections) == 1
   assert len(server.connections) == 0
 
-
 s.close()
 
 let (outp, _) = execCmdEx("git diff tests/test-output.txt")

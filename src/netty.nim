@@ -21,11 +21,11 @@ type
     port*: Port
 
   DebugConfig* = object
-    tickTime*: float64 ## Override the time processed by calls to tick.
-    dropRate*: float32 ## [0, 1] % simulated drop rate.
+    tickTime*: float64    ## Override the time processed by calls to tick.
+    dropRate*: float32    ## [0, 1] % simulated drop rate.
     readLatency*: float32 ## Min simulated read latency in seconds.
     sendLatency*: float32 ## Min simulated send latency in seconds.
-    maxUdpPacket*: int ## Max size of each outgoing UDP packet in bytes.
+    maxUdpPacket*: int    ## Max size of each outgoing UDP packet in bytes.
 
   Reactor* = ref object
     ## Main networking system that can open or receive connections.
@@ -42,8 +42,8 @@ type
     messages*: seq[Message]
 
   ConnectionStats* = object
-    inFlight*: int     ## How many bytes are currently in flight.
-    saturated*: bool   ## If this conn cannot send until it receives acks.
+    inFlight*: int   ## How many bytes are currently in flight.
+    saturated*: bool ## If this conn cannot send until it receives acks.
     latencyTs*: TimeSeries
     throughputTs*: TimedSamples
 
