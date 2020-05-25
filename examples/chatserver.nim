@@ -8,8 +8,8 @@ while true:
     echo "[new] ", connection.address
   for connection in server.deadConnections:
     echo "[dead] ", connection.address
-  for packet in server.packets:
-    echo "[msg]", packet.data
-    # send packet data to all connections
+  for msg in server.messages:
+    echo "[msg]", msg.data
+    # send msg data to all connections
     for connection in server.connections:
-      connection.send(packet.data)
+      server.send(connection, msg.data)

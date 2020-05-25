@@ -2,12 +2,6 @@
 
 import snappy, streams, tables
 
-proc compress(s: string): string =
-  cast[string](snappy.compress(cast[seq[byte]](s)))
-
-proc uncompress(s: string): string =
-  cast[string](snappy.uncompress(cast[seq[byte]](s)))
-
 # Forward declarations.
 proc toFlatty[T](s: Stream, x: seq[T])
 proc fromFlatty[T](s: Stream, x: var seq[T])

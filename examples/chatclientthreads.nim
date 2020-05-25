@@ -28,11 +28,11 @@ createThread(thread, readSingleChar, (0, ))
 var line: string
 while true:
   client.tick()
-  for packet in client.packets:
-    # we got a packet, rase current line user is typing
+  for msg in client.messages:
+    # we got a message, rase current line user is typing
     stdout.eraseLine()
-    # write packet line
-    echo packet.data
+    # write message line
+    echo msg.data
     # write back the line was typing
     writeStyled(line)
 
@@ -51,7 +51,7 @@ while true:
 
     if singleChar == char(13):
       # handle sending
-      connection.send(name & ":" & line)
+      client.send(connection, name & ":" & line)
       # clear line, reset eveything
       # server should echo the line back
       line = ""
