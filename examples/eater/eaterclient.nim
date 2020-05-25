@@ -22,7 +22,7 @@ var
   others: Table[int, Player]
   othersSmoothPos: Table[int, Vec2]
 
-  debugPoss: seq[Vec2]
+  debugPosSeq: seq[Vec2]
   realLatency: float
 
 client.debug.dropRate = 0.01
@@ -36,7 +36,7 @@ proc tickMain() =
   if focused and mouse.pos.inRect(vec2(0, 0), windowFrame):
     if ((windowFrame / 2) - mouse.pos).length > 0:
       me.vel -= dir(windowFrame / 2, mouse.pos) * 0.1
-  me.vel = me.vel * 0.9 # friction
+  me.vel *= 0.9 # friction
   me.pos += me.vel
 
   if frameCount mod 10 == 0:
@@ -44,9 +44,9 @@ proc tickMain() =
 
   for msg in client.messages:
     var p = msg.data.fromFlatty(Packet)
-    debugPoss.add(p.player.pos)
-    if debugPoss.len > 100:
-      debugPoss = debugPoss[1..^1]
+    debugPosSeq.add(p.player.pos)
+    if debugPosSeq.len > 100:
+      debugPosSeq = debugPosSeq[1..^1]
     if p.id != myId:
       others[p.id] = p.player
       if p.id notin othersSmoothPos:
@@ -75,7 +75,7 @@ proc drawMain() =
   for id, other in others.pairs:
     ctx.drawSprite("star.png", othersSmoothPos[id], color=color(1,0,0,1))
 
-  for pos in debugPoss:
+  for pos in debugPosSeq:
     ctx.drawSprite("star.png", pos, color=color(0,1,0,1), scale=0.05)
 
 
@@ -103,7 +103,7 @@ startFidget(
   tick = tickMain,
   w = 1280,
   h = 800,
-  openglVersion = (4, 3),
+  openglVersion = (4, 1),
   msaa = msaa4x,
   mainLoopMode = RepaintSplitUpdate
 )

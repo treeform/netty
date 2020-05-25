@@ -297,6 +297,7 @@ proc readParts(reactor: Reactor) =
       if conn != nil:
         reactor.deadConnections.add(conn)
         reactor.connections.delete(reactor.connections.find(conn))
+      continue
 
     if magic == punchMagic:
       #echo &"Received punch through from {address}"
@@ -464,14 +465,14 @@ proc sendMagic(
 proc disconnect*(reactor: Reactor, conn: Connection) =
   ## Disconnects the connection.
   assert reactor.id == conn.reactorId
-  for i in 0..10:
+  for i in 0 .. 10:
     reactor.sendMagic(conn.address, disconnectMagic, conn.id)
   reactor.deadConnections.add(conn)
   reactor.connections.delete(reactor.connections.find(conn))
 
 proc punchThrough*(reactor: Reactor, address: Address) =
   ## Tries to punch through to host/port.
-  for i in 0..10:
+  for i in 0 .. 10:
     reactor.sendMagic(address, punchMagic, 0, "punch through")
 
 proc punchThrough*(reactor: Reactor, host: string, port: int) =
