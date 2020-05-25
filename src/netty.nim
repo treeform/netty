@@ -6,6 +6,7 @@ export Port, hexprint
 const
   partMagic = uint32(0xFFDDFF33)
   ackMagic = uint32(0xFF33FF11)
+  disconnectMagic = uint32(0xFF77FF99)
   punchMagic = uint32(0x00000000)
   headerSize = 4 + 4 + 4 + 2 + 2
   ackTime = 0.250     ## Seconds to wait before sending the packet again.
@@ -39,9 +40,10 @@ type
     messages*: seq[Message]
 
   ConnectionStats* = object
-    inFlight: int     ## How many bytes are currently in flight.
-    saturated: bool   ## If this conn cannot send until it receives acks.
-    latency*: float32 ## Avg conn latency.
+    inFlight*: int     ## How many bytes are currently in flight.
+    saturated*: bool   ## If this conn cannot send until it receives acks.
+    avgLatency*: float32 ## Avg conn latency.
+    maxLatency*: float32 ## Max conn latency.
     throughput*: int  ## Avg conn throughput in bytes.
 
     latencySamples: seq[float32]
@@ -283,20 +285,27 @@ proc readParts(reactor: Reactor) =
     except:
       break
 
-    if byteLen < headerSize:
-      # A valid packet will have at least the header.
-      echo &"Received packet of invalid size {reactor.address}"
-      break
-
     let address = initAddress(host, port.int)
 
     var
       stream = newStringStream(buf)
       magic = stream.readUint32()
 
+    if magic == disconnectMagic:
+      let connId = stream.readUint32()
+      var conn = reactor.getConn(connId)
+      if conn != nil:
+        reactor.deadConnections.add(conn)
+        reactor.connections.delete(reactor.connections.find(conn))
+
     if magic == punchMagic:
-      # echo &"Received punch through from {address}"
+      #echo &"Received punch through from {address}"
       continue
+
+    if byteLen < headerSize:
+      # A valid packet will have at least the header.
+      echo &"Received packet of invalid size {reactor.address}"
+      break
 
     var part = Part()
     part.sequenceNum = stream.readUint32()
@@ -313,6 +322,10 @@ proc readParts(reactor: Reactor) =
         reactor.connections.add(conn)
         reactor.newConnections.add(conn)
       else:
+        continue
+
+    if reactor.debug.dropRate > 0.0:
+      if rand(1.0) <= reactor.debug.dropRate:
         continue
 
     if magic == partMagic:
@@ -373,13 +386,16 @@ proc updateStats(reactor: Reactor) =
     block latency:
       var
         total: float32
+        maximum: float32
         divisor: int
       for sample in conn.stats.latencySamples:
         if sample > 0:
           total += sample
           inc(divisor)
+          maximum = max(sample, maximum)
 
-      conn.stats.latency = if divisor > 0: total / divisor.float32 else: 0
+      conn.stats.avgLatency = if divisor > 0: total / divisor.float32 else: 0
+      conn.stats.maxLatency = maximum
 
     block throughput:
       var
@@ -430,14 +446,33 @@ proc send*(reactor: Reactor, conn: Connection, data: string) =
   assert reactor.id == conn.reactorId
   reactor.divideAndSend(conn, data)
 
+proc sendMagic(
+  reactor: Reactor,
+  address: Address,
+  magic: uint32,
+  connId: uint32,
+  extra = ""
+) =
+  var stream = newStringStream()
+  stream.write(magic)
+  stream.write(connId)
+  stream.write(extra)
+  stream.setPosition(0)
+  let packet = stream.readAll()
+  reactor.socket.sendTo(address.host, address.port, packet)
+
+proc disconnect*(reactor: Reactor, conn: Connection) =
+  ## Disconnects the connection.
+  assert reactor.id == conn.reactorId
+  for i in 0..10:
+    reactor.sendMagic(conn.address, disconnectMagic, conn.id)
+  reactor.deadConnections.add(conn)
+  reactor.connections.delete(reactor.connections.find(conn))
+
 proc punchThrough*(reactor: Reactor, address: Address) =
   ## Tries to punch through to host/port.
   for i in 0..10:
-    reactor.socket.sendTo(
-      address.host,
-      address.port,
-      char(0) & char(0) & char(0) & char(0) & "punch through"
-    )
+    reactor.sendMagic(address, punchMagic, 0, "punch through")
 
 proc punchThrough*(reactor: Reactor, host: string, port: int) =
   ## Tries to punch through to host/port.
