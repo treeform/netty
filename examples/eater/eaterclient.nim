@@ -23,8 +23,8 @@ var
 
   debugPosSeq: seq[Vec2]
 
-client.debug.dropRate = 0.01
-
+client.debug.dropRate = 0.0
+client.debug.minLatency = 0.5
 
 loadFont("Changa Bold", "Changa-Bold.ttf")
 

@@ -23,6 +23,7 @@ type
   DebugConfig* = object
     tickTime*: float64 ## Override the time processed by calls to tick.
     dropRate*: float32 ## [0, 1] % simulated drop rate.
+    minLatency*: float32 ## Simulated latency in seconds.
     maxUdpPacket*: int ## Max size of each outgoing UDP packet in bytes.
 
   Reactor* = ref object
@@ -65,6 +66,7 @@ type
     data: string
 
     # Sending
+    delayTime: float64
     queuedTime: float64
     sentTime: float64
     acked: bool
@@ -177,6 +179,7 @@ proc divideAndSend(reactor: Reactor, conn: Connection, data: string) =
   for part in parts.mitems:
     part.numParts = parts.len.uint16
     part.queuedTime = reactor.time
+    part.delayTime = reactor.debug.minLatency
 
   conn.sendParts.add(parts)
   inc conn.sendSequenceNum
@@ -204,6 +207,9 @@ proc sendNeededParts(reactor: Reactor) =
         break
 
       if part.acked or (part.sentTime + ackTime > reactor.time):
+        continue
+
+      if part.queuedTime + part.delayTime > reactor.time:
         continue
 
       if part.queuedTime + connTimeout <= reactor.time:
@@ -249,24 +255,20 @@ proc sendSpecial(
 
 proc deleteAckedParts(reactor: Reactor) =
   for conn in reactor.connections:
-    var
-      pos, bytesAcked: int
+    var pos, bytesAcked: int
     for part in conn.sendParts:
       if not part.acked:
         break
       inc pos
       bytesAcked += part.data.len
+
     if pos > 0:
-      var
-        minTime = float64.high
-        maxTime: float64
+      var minTime = float64.high
       for i in 0 ..< pos:
         let part = conn.sendParts[i]
         minTime = min(minTime, part.queuedTime)
-        maxTime = max(maxTime, part.ackedTime)
 
-      conn.stats.latencyTs.add((maxTime - minTime).float32)
-
+      conn.stats.latencyTs.add((reactor.time - minTime).float32)
       conn.sendParts.delete(0, pos - 1)
 
     conn.stats.throughputTs.add(reactor.time, bytesAcked.float64)
