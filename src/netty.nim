@@ -23,7 +23,8 @@ type
   DebugConfig* = object
     tickTime*: float64 ## Override the time processed by calls to tick.
     dropRate*: float32 ## [0, 1] % simulated drop rate.
-    minLatency*: float32 ## Simulated latency in seconds.
+    readLatency*: float32 ## Min simulated read latency in seconds.
+    sendLatency*: float32 ## Min simulated send latency in seconds.
     maxUdpPacket*: int ## Max size of each outgoing UDP packet in bytes.
 
   Reactor* = ref object
@@ -66,7 +67,6 @@ type
     data: string
 
     # Sending
-    delayTime: float64
     queuedTime: float64
     sentTime: float64
     acked: bool
@@ -134,6 +134,9 @@ proc read(reactor: Reactor, conn: Connection): (bool, Message) =
 
   var good = true
   for i in 0.uint16 ..< numParts:
+    if conn.recvParts[i].ackedTime + reactor.debug.readLatency > reactor.time:
+      break
+
     if not(conn.recvParts[i].sequenceNum == sequenceNum and
       conn.recvParts[i].numParts == numParts and
       conn.recvParts[i].partNum == i):
@@ -179,7 +182,6 @@ proc divideAndSend(reactor: Reactor, conn: Connection, data: string) =
   for part in parts.mitems:
     part.numParts = parts.len.uint16
     part.queuedTime = reactor.time
-    part.delayTime = reactor.debug.minLatency
 
   conn.sendParts.add(parts)
   inc conn.sendSequenceNum
@@ -209,7 +211,7 @@ proc sendNeededParts(reactor: Reactor) =
       if part.acked or (part.sentTime + ackTime > reactor.time):
         continue
 
-      if part.queuedTime + part.delayTime > reactor.time:
+      if part.queuedTime + reactor.debug.sendLatency > reactor.time:
         continue
 
       if part.queuedTime + connTimeout <= reactor.time:

@@ -1,5 +1,5 @@
 import fidget, vmath, fidget/opengl/base, fidget/opengl/context, netty, random,
-  netty/flatty, tables, strformat, times
+  netty/flatty, tables, strformat
 
 randomize()
 
@@ -23,8 +23,9 @@ var
 
   debugPosSeq: seq[Vec2]
 
-client.debug.dropRate = 0.0
-client.debug.minLatency = 0.5
+client.debug.dropRate = 0.01
+client.debug.readLatency = 0.1
+client.debug.sendLatency = 0.1
 
 loadFont("Changa Bold", "Changa-Bold.ttf")
 
