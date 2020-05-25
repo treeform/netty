@@ -267,8 +267,8 @@ block:
   assert c2s.sendParts.len == 0
   assert c2s.stats.inFlight == 0, &"stats.inFlight: {c2s.stats.inFlight}"
   assert c2s.stats.saturated == false
-  assert c2s.stats.latency > 0
-  assert c2s.stats.throughput > 0
+  assert c2s.stats.latencyTs.avg() > 0
+  assert c2s.stats.throughputTs.avg() > 0
 
 block:
   s.writeLine "testing retry"
@@ -322,6 +322,26 @@ block:
   # No new connection, no crash
   assert server.newConnections.len == 0
   assert server.connections.len == 0
+
+block:
+  s.writeLine "disconnect packet"
+  var server = newReactor("127.0.0.1", 2017)
+  var client = newReactor()
+  var c2s = client.connect(server.address)
+  client.send(c2s, "hi")
+  client.tick()
+  server.tick()
+  assert len(server.messages) == 1
+  assert len(server.connections) == 1
+  assert len(client.connections) == 1
+  client.disconnect(c2s)
+  assert len(client.deadConnections) == 1
+  assert len(client.connections) == 0
+  client.tick()
+  server.tick()
+  assert len(server.deadConnections) == 1
+  assert len(server.connections) == 0
+
 
 s.close()
 
