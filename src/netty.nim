@@ -47,6 +47,7 @@ type
     throughput*: int  ## Avg conn throughput in bytes.
 
     latencySamples: seq[float32]
+    latencySamplesAt: int
     throughputSamples: seq[(float64, int32)]
     throughputSamplesAt: int
 
@@ -124,7 +125,7 @@ func getConn(reactor: Reactor, connId: uint32): Connection =
     if conn.id == connId:
       return conn
 
-proc read(conn: Connection): (bool, Message) =
+proc read(reactor: Reactor, conn: Connection): (bool, Message) =
   if conn.recvParts.len == 0:
     return
 
@@ -262,6 +263,20 @@ proc deleteAckedParts(reactor: Reactor) =
       inc pos
       bytesAcked += part.data.len
     if pos > 0:
+      var
+        minTime = float64.high
+        maxTime: float64
+      for i in 0 ..< pos:
+        let part = conn.sendParts[i]
+        minTime = min(minTime, part.queuedTime)
+        maxTime = max(maxTime, part.ackedTime)
+
+      if conn.stats.latencySamplesAt >= conn.stats.throughputSamples.len:
+        conn.stats.latencySamplesAt = 0
+      conn.stats.latencySamples[conn.stats.latencySamplesAt] =
+        (maxTime - minTime).float32
+      inc conn.stats.latencySamplesAt
+
       conn.sendParts.delete(0, pos - 1)
 
     if conn.stats.throughputSamplesAt >= conn.stats.throughputSamples.len:
@@ -365,9 +380,6 @@ proc readParts(reactor: Reactor) =
           if not p.acked:
             p.acked = true
             p.ackedTime = reactor.time
-            conn.stats.latencySamples[
-              p.sequenceNum.int mod conn.stats.latencySamples.len
-            ] = (p.ackedTime - p.sentTime).float32
 
     else:
       # Unrecognized packet
@@ -376,7 +388,7 @@ proc readParts(reactor: Reactor) =
 proc combineParts(reactor: Reactor) =
   for conn in reactor.connections.mitems:
     while true:
-      let (gotMsg, msg) = conn.read()
+      let (gotMsg, msg) = reactor.read(conn)
       if gotMsg:
         reactor.messages.add(msg)
       else:

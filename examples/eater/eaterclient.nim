@@ -11,7 +11,6 @@ type
   Packet = object
     id: int
     player: Player
-    time: float64
 
 var
   myId = rand(0 .. 10000)
@@ -23,7 +22,6 @@ var
   othersSmoothPos: Table[int, Vec2]
 
   debugPosSeq: seq[Vec2]
-  realLatency: float
 
 client.debug.dropRate = 0.01
 
@@ -40,7 +38,7 @@ proc tickMain() =
   me.pos += me.vel
 
   if frameCount mod 10 == 0:
-    client.send(connection, Packet(id: myId, player: me, time: epochTime()).toFlatty())
+    client.send(connection, Packet(id: myId, player: me).toFlatty())
 
   for msg in client.messages:
     var p = msg.data.fromFlatty(Packet)
@@ -51,8 +49,6 @@ proc tickMain() =
       others[p.id] = p.player
       if p.id notin othersSmoothPos:
          othersSmoothPos[p.id] = p.player.pos
-    else:
-      realLatency = lerp(realLatency, epochTime() - p.time, 0.1)
 
   client.tick()
 
@@ -89,7 +85,6 @@ proc drawMain() =
     characters &"""
     Fps: {1/avgFrameTime}
     Network:
-      realLatency: {realLatency*1000} ms
       avgLatency: {connection.stats.avgLatency*1000} ms
       maxLatency: {connection.stats.maxLatency*1000} ms
       dropRate: {client.debug.dropRate*100} %
