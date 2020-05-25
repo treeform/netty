@@ -27,7 +27,7 @@ TCP is really bad for short latency sensitive messages. TCP was designed for thr
 ## server.nim
 
 ```nim
-import Netty
+import netty
 
 # listen for a connection on localhost port 1999
 var server = newReactor("127.0.0.1", 1999)
@@ -36,34 +36,33 @@ echo "Listenting for UDP on 127.0.0.1:1999"
 while true:
   # must call tick to both read and write
   server.tick()
-  # usually there are no new packets, but if there are
-  for packet in server.packets:
-    # print packet data
-    echo "GOT PACKET: ", packet.data
-    # echo packet back to the client
-    packet.connection.send("you said:" & packet.data)
-
+  # usually there are no new messages, but if there are
+  for msg in server.messages:
+    # print message data
+    echo "GOT MESSAGE: ", msg.data
+    # echo message back to the client
+    server.send(msg.conn, "you said:" & msg.data)
 ```
 
 ## client.nim
 
 ```nim
-import Netty
+import netty
 
 # create connection
 var client = newReactor()
 # connect to server
 var c2s = client.connect("127.0.0.1", 1999)
 # send message on the connection
-c2s.send("hi")
+client.send(c2s, "hi")
 # main loop
 while true:
   # must call tick to both read and write
   client.tick()
-  # usually there are no new packets, but if there are
-  for packet in client.packets:
-    # print packet data
-    echo "GOT PACKET: ", packet.data
+  # usually there are no new messages, but if there are
+  for msg in client.messages:
+    # print message data
+    echo "GOT MESSAGE: ", msg.data
 ```
 
 # Chat Server/Client example
@@ -71,7 +70,7 @@ while true:
 ## chatserver.nim
 
 ```nim
-import Netty
+import netty
 
 var server = newReactor("127.0.0.1", 2001)
 echo "Listenting for UDP on 127.0.0.1:2001"
@@ -81,17 +80,17 @@ while true:
     echo "[new] ", connection.address
   for connection in server.deadConnections:
     echo "[dead] ", connection.address
-  for packet in server.packets:
-    echo packet.data
-    # send packet data to all connections
+  for msg in server.messages:
+    echo "[msg]", msg.data
+    # send msg data to all connections
     for connection in server.connections:
-      connection.send(packet.data)
+      server.send(connection, msg.data)
 ```
 
 ## chatclient.nim
 
 ```nim
-import Netty
+import netty
 
 var client = newReactor()
 var connection = client.connect("127.0.0.1", 2001)
@@ -103,11 +102,11 @@ echo "note: press enter to see if people sent you things"
 
 while true:
   client.tick()
-  for packet in client.packets:
-    echo packet.data
+  for msg in client.messages:
+    echo msg.data
 
   # wait for user to type a line
   let line = readLine(stdin)
   if line.len > 0:
-    connection.send(name & ":" & line)
+    client.send(connection, name & ":" & line)
 ```

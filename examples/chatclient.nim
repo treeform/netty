@@ -10,10 +10,10 @@ echo "note: press enter to see if people sent you things"
 
 while true:
   client.tick()
-  for packet in client.packets:
-    echo packet.data
+  for msg in client.messages:
+    echo msg.data
 
   # wait for user to type a line
   let line = readLine(stdin)
   if line.len > 0:
-    connection.send(name & ":" & line)
+    client.send(connection, name & ":" & line)
