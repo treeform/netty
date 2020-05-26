@@ -4,10 +4,10 @@ import hashes, nativesockets, net, netty/hexprint, netty/timeseries, random,
 export Port, hexprint, timeseries
 
 const
-  partMagic = uint32(0xFFDDFF33)
-  ackMagic = uint32(0xFF33FF11)
-  disconnectMagic = uint32(0xFF77FF99)
-  punchMagic = uint32(0x00000000)
+  partMagic = 0xFFDDFF33.uint32
+  ackMagic = 0xFF33FF11.uint32
+  disconnectMagic = 0xFF77FF99.uint32
+  punchMagic = 0x00000000.uint32
   headerSize = 4 + 4 + 4 + 2 + 2
   ackTime = 0.250     ## Seconds to wait before sending the packet again.
   connTimeout = 10.00 ## Seconds to wait until timing-out the connection.
@@ -105,7 +105,7 @@ func hash*(x: Address): Hash =
   hash((x.host, x.port))
 
 proc genId(): uint32 {.inline.} =
-  r.rand(high(uint32).int).uint32
+  r.rand(uint32.high.int).uint32
 
 proc newConnection(reactor: Reactor, address: Address): Connection =
   result = Connection()
@@ -277,7 +277,7 @@ proc deleteAckedParts(reactor: Reactor) =
 
 proc readParts(reactor: Reactor) =
   var
-    buf = newStringOfcap(reactor.debug.maxUdpPacket)
+    buf = newStringOfCap(reactor.debug.maxUdpPacket)
     host: string
     port: Port
 
