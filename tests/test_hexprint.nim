@@ -1,4 +1,4 @@
-import netty/hexprint, osproc, streams
+import netty/hexprint, osproc, netty/binny, streams
 
 var s = newFileStream("tests/test_hexprint-output.txt", fmWrite)
 
@@ -15,16 +15,16 @@ block:
 
 block:
   s.writeLine "int16s:"
-  var bin = newStringStream()
+  var bin = ""
   for i in 0 .. 16:
-    bin.write(i.uint16)
+    bin.addUInt16(i.uint16)
   s.writeLine hexPrint(bin)
 
 block:
   s.writeLine "int32s"
-  var bin = newStringStream()
+  var bin = ""
   for i in 0 .. 16:
-    bin.write(1000 * i.uint32)
+    bin.addUInt32(1000 * i.uint32)
   s.writeLine hexPrint(bin)
 
 s.close()

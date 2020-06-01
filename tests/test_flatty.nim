@@ -104,3 +104,7 @@ var tup: tuple[count: int, id: byte, name: string] = (1, 2.byte, "3")
 assert tup.toFlatty.fromFlatty(tuple[count: int, id: byte, name: string]) == tup
 var tup2: tuple[foo: Foo, id: uint8] = (Foo(), 1.uint8)
 assert tup2.toFlatty.fromFlatty(tuple[foo: Foo, id: uint8]) == tup2
+
+# Test arrays of tuples (requires forward declarations)
+var arrOfTuples: array[2, (int, int)] = [(1, 2), (0, 3)]
+assert arrOfTuples.toFlatty.fromFlatty(array[2, (int, int)]) == arrOfTuples
