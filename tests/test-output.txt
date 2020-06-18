@@ -2,26 +2,26 @@ Testing netty
 simple test
 MESSAGE hi
 main test
-REACTOR: server (127.0.0.1:2000)
-REACTOR: client (127.0.0.1:2001)
+REACTOR: server (127.0.0.1:3001)
+REACTOR: client (127.0.0.1:3002)
 connect
-REACTOR: server (127.0.0.1:2000)
-REACTOR: client (127.0.0.1:2001)
-  CONN: 127.0.0.1:2000
+REACTOR: server (127.0.0.1:3001)
+REACTOR: client (127.0.0.1:3002)
+  CONN: 127.0.0.1:3001
 client --------- 'hey you' ----------> server
 server should have message
 client should have part ACK:false
-REACTOR: server (127.0.0.1:2000)
-  CONN: 127.0.0.1:2001
-  MESSAGE: Message(from: 127.0.0.1:2001 #0, size:7)
-REACTOR: client (127.0.0.1:2001)
-  CONN: 127.0.0.1:2000
+REACTOR: server (127.0.0.1:3001)
+  CONN: 127.0.0.1:3002
+  MESSAGE: Message(from: 127.0.0.1:3002 #0, size:7)
+REACTOR: client (127.0.0.1:3002)
+  CONN: 127.0.0.1:3001
     SEND PART: Part(0:0/1 ACK:false)
 client should not have any parts now, acked parts deleted
-REACTOR: server (127.0.0.1:2000)
-  CONN: 127.0.0.1:2001
-REACTOR: client (127.0.0.1:2001)
-  CONN: 127.0.0.1:2000
+REACTOR: server (127.0.0.1:3001)
+  CONN: 127.0.0.1:3002
+REACTOR: client (127.0.0.1:3002)
+  CONN: 127.0.0.1:3001
 id should match
 single client disconnect
 testing large message

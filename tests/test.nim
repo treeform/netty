@@ -6,6 +6,11 @@ var s = newFileStream("tests/test-output.txt", fmWrite)
 
 s.writeLine "Testing netty"
 
+var nextPortNumber = 3000
+proc nextPort(): int =
+  result = nextPortNumber
+  inc nextPortNumber
+
 proc display(name: string, r: Reactor) =
   s.writeLine "REACTOR: ", name, " (", r.address, ")"
   for c in r.connections:
@@ -19,7 +24,7 @@ proc display(name: string, r: Reactor) =
 
 block:
   s.writeLine "simple test"
-  var server = newReactor("127.0.0.1", 1999)
+  var server = newReactor("127.0.0.1", nextPort())
   var client = newReactor()
   var c2s = client.connect(server.address)
   client.send(c2s, "hi")
@@ -31,8 +36,8 @@ block:
 block:
   s.writeLine "main test"
 
-  var server = newReactor("127.0.0.1", 2000)
-  var client = newReactor("127.0.0.1", 2001)
+  var server = newReactor("127.0.0.1", nextPort())
+  var client = newReactor("127.0.0.1", nextPort())
 
   display("server", server)
   display("client", client)
@@ -68,7 +73,7 @@ block:
 
 block:
   s.writeLine "single client disconnect"
-  var server = newReactor("127.0.0.1", 2010)
+  var server = newReactor("127.0.0.1", nextPort())
   var client = newReactor()
   client.debug.tickTime = 1.0
   client.tick()
@@ -87,8 +92,8 @@ block:
 block:
   s.writeLine "testing large message"
 
-  var server = newReactor("127.0.0.1", 2002)
-  var client = newReactor("127.0.0.1", 2003)
+  var server = newReactor("127.0.0.1", nextPort())
+  var client = newReactor("127.0.0.1", nextPort())
 
   s.writeLine client.debug.maxUdpPacket
   var buffer = "large:"
@@ -115,8 +120,8 @@ block:
     dataToSend.add &"data #{i}, its cool!"
 
   # stress
-  var server = newReactor("127.0.0.1", 2004)
-  var client = newReactor("127.0.0.1", 2005)
+  var server = newReactor("127.0.0.1", nextPort())
+  var client = newReactor("127.0.0.1", nextPort())
   var c2s = client.connect(server.address)
   for d in dataToSend:
     client.send(c2s, d)
@@ -142,8 +147,8 @@ block:
     dataToSend.add &"data #{i}, its cool!"
 
   # stress
-  var server = newReactor("127.0.0.1", 2006)
-  var client = newReactor("127.0.0.1", 2007)
+  var server = newReactor("127.0.0.1", nextPort())
+  var client = newReactor("127.0.0.1", nextPort())
   client.debug.dropRate = 0.2 # 20% packet loss rate is broken for most things
   s.writeLine "20% drop rate"
   var c2s = client.connect(server.address)
@@ -172,7 +177,7 @@ block:
     dataToSend.add &"data #{i}, its cool!"
 
   # stress
-  var server = newReactor("127.0.0.1", 2008)
+  var server = newReactor("127.0.0.1", nextPort())
   for d in dataToSend:
     var client = newReactor()
     var c2s = client.connect(server.address)
@@ -202,7 +207,7 @@ block:
 
 block:
   s.writeLine "punch through test"
-  var server = newReactor("127.0.0.1", 2009)
+  var server = newReactor("127.0.0.1", nextPort())
   var client = newReactor()
   var c2s = client.connect(server.address)
   client.punchThrough(server.address)
@@ -215,8 +220,8 @@ block:
 block:
   s.writeLine "testing maxUdpPacket and maxInFlight"
 
-  var server = newReactor("127.0.0.1", 2011)
-  var client = newReactor("127.0.0.1", 2012)
+  var server = newReactor("127.0.0.1", nextPort())
+  var client = newReactor("127.0.0.1", nextPort())
 
   client.debug.maxUdpPacket = 100
   client.maxInFlight = 10_000
@@ -263,8 +268,8 @@ block:
 block:
   s.writeLine "testing retry"
 
-  var server = newReactor("127.0.0.1", 2013)
-  var client = newReactor("127.0.0.1", 2014)
+  var server = newReactor("127.0.0.1", nextPort())
+  var client = newReactor("127.0.0.1", nextPort())
 
   var c2s = client.connect(server.address)
   client.send(c2s, "test")
@@ -284,8 +289,8 @@ block:
 block:
   s.writeLine "testing junk data"
 
-  var server = newReactor("127.0.0.1", 2015)
-  var client = newReactor("127.0.0.1", 2016)
+  var server = newReactor("127.0.0.1", nextPort())
+  var client = newReactor("127.0.0.1", nextPort())
 
   var c2s = client.connect(server.address)
 
@@ -315,7 +320,7 @@ block:
 
 block:
   s.writeLine "disconnect packet"
-  var server = newReactor("127.0.0.1", 2017)
+  var server = newReactor("127.0.0.1", nextPort())
   var client = newReactor()
   var c2s = client.connect(server.address)
   client.send(c2s, "hi")
@@ -331,6 +336,27 @@ block:
   server.tick()
   assert len(server.deadConnections) == 1
   assert len(server.connections) == 0
+
+block:
+  var server = newReactor("127.0.0.1", nextPort())
+  var client = newReactor("127.0.0.1", nextPort())
+
+  client.maxInFlight = 10_000
+
+  var buffer = ""
+  for i in 0 ..< 1_000_000:
+    buffer.add "F"
+
+  var c2s = client.connect(server.address)
+
+  for p in 0 ..< 20:
+    client.send(c2s, buffer)
+
+  while true:
+    client.tick()
+    server.tick()
+    if client.connections.len == 0:
+      break
 
 s.close()
 
