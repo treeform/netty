@@ -43,6 +43,7 @@ type
 
   ConnectionStats* = object
     inFlight*: int   ## How many bytes are currently in flight.
+    inQueue*: int    ## How many bytes are currently waiting to be sent.
     saturated*: bool ## If this conn cannot send until it receives acks.
     latencyTs*: TimeSeries
     throughputTs*: TimedSamples
@@ -52,6 +53,7 @@ type
     reactorId*: uint32
     address*: Address
     stats*: ConnectionStats
+    lastActiveTime*: float64
 
     sendParts: seq[Part]    ## Parts queued to be sent.
     recvParts: seq[Part]    ## Parts that have been read from the socket.
@@ -159,6 +161,7 @@ proc read(reactor: Reactor, conn: Connection): (bool, Message) =
 proc divideAndSend(reactor: Reactor, conn: Connection, data: string) =
   ## Divides a packet into parts and gets it ready to be sent.
   assert data.len != 0
+  conn.stats.inQueue += data.len
 
   var
     parts: seq[Part]
@@ -197,9 +200,7 @@ proc rawSend(reactor: Reactor, address: Address, packet: string) =
     return
 
 proc sendNeededParts(reactor: Reactor) =
-  var i = 0
-  while i < reactor.connections.len:
-    let conn = reactor.connections[i]
+  for conn in reactor.connections:
     var
       inFlight: int
       saturated: bool
@@ -214,13 +215,8 @@ proc sendNeededParts(reactor: Reactor) =
       if part.queuedTime + reactor.debug.sendLatency > reactor.time:
         continue
 
-      if part.queuedTime + connTimeout <= reactor.time:
-        reactor.deadConnections.add(conn)
-        reactor.connections.delete(i)
-        dec(i)
-        break
-
       inFlight += part.data.len
+      conn.stats.inQueue -= part.data.len
 
       part.sentTime = reactor.time
 
@@ -237,7 +233,6 @@ proc sendNeededParts(reactor: Reactor) =
 
     conn.stats.inFlight = inFlight
     conn.stats.saturated = saturated
-    inc i
 
 proc sendSpecial(
   reactor: Reactor, conn: Connection, part: Part, magic: uint32
@@ -334,6 +329,8 @@ proc readParts(reactor: Reactor) =
       if rand(1.0) <= reactor.debug.dropRate:
         continue
 
+    conn.lastActiveTime = reactor.time
+
     if magic == partMagic:
       part.acked = true
       part.ackedTime = reactor.time
@@ -384,6 +381,17 @@ proc combineParts(reactor: Reactor) =
       else:
         break
 
+proc timeoutConnections(reactor: Reactor) =
+  ## See if any connections have timed out.
+  var i = 0
+  while i < reactor.connections.len:
+    let conn = reactor.connections[i]
+    if conn.lastActiveTime + connTimeout <= reactor.time:
+      reactor.deadConnections.add(conn)
+      reactor.connections.delete(i)
+      continue
+    inc i
+
 proc tick*(reactor: Reactor) =
   if reactor.debug.tickTime != 0:
     reactor.time = reactor.debug.tickTime
@@ -398,11 +406,13 @@ proc tick*(reactor: Reactor) =
   reactor.readParts()
   reactor.combineParts()
   reactor.deleteAckedParts()
+  reactor.timeoutConnections()
 
 proc connect*(reactor: Reactor, address: Address): Connection =
   ## Starts a new connection to an address.
   result = newConnection(reactor, address)
   result.reactorId = reactor.id
+  result.lastActiveTime = reactor.time
   reactor.connections.add(result)
   reactor.newConnections.add(result)
 

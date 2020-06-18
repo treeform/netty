@@ -67,6 +67,24 @@ block:
   assert server.connections[0].id == client.connections[0].id
 
 block:
+  s.writeLine "single client disconnect"
+  var server = newReactor("127.0.0.1", 2010)
+  var client = newReactor()
+  client.debug.tickTime = 1.0
+  client.tick()
+  var c2s = client.connect(server.address)
+  client.send(c2s, "hi")
+  client.tick()
+  server.tick()
+  client.tick()
+  assert len(server.messages) == 1, $server.messages.len
+  assert len(server.connections) == 1, $server.connections.len
+  client.debug.tickTime = 1.0 + connTimeout
+  client.tick()
+  assert len(client.deadConnections) == 1
+  assert len(client.connections) == 0
+
+block:
   s.writeLine "testing large message"
 
   var server = newReactor("127.0.0.1", 2002)
@@ -161,6 +179,7 @@ block:
     client.send(c2s, d)
     client.tick()
 
+  server.debug.tickTime = 1.0
   server.tick()
 
   assert len(server.connections) == 100
@@ -175,25 +194,11 @@ block:
   assert dataToSend.len == 0
   s.writeLine dataToSend
 
-  var shouldBeDead: seq[uint32]
-
-  for i in 0 ..< 50:
-    let conn = server.connections[i]
-    shouldBeDead.add(conn.id)
-    server.send(server.connections[i], "timeout_trigger")
+  server.debug.tickTime = 1.0 + connTimeout
   server.tick()
 
-  # Cause timeouts
-  server.debug.tickTime = epochTime() + connTimeout
-  server.tick()
-
-  assert len(server.connections) == 50
-  assert len(server.deadConnections) == 50
-
-  for conn in server.deadConnections:
-    shouldBeDead.delete(shouldBeDead.find(conn.id))
-
-  assert len(shouldBeDead) == 0
+  assert len(server.connections) == 0, $server.connections.len
+  assert len(server.deadConnections) == 100, $server.deadConnections.len
 
 block:
   s.writeLine "punch through test"
@@ -206,21 +211,6 @@ block:
   server.tick()
   for msg in server.messages:
     s.writeLine "MESSAGE ", msg.data
-
-block:
-  s.writeLine "single client disconnect"
-  var server = newReactor("127.0.0.1", 2010)
-  var client = newReactor()
-  var c2s = client.connect(server.address)
-  client.send(c2s, "hi")
-  client.tick()
-  server.tick()
-  assert len(server.messages) == 1
-  assert len(server.connections) == 1
-  client.debug.tickTime = epochTime() + connTimeout
-  client.tick()
-  assert len(client.deadConnections) == 1
-  assert len(client.connections) == 0
 
 block:
   s.writeLine "testing maxUdpPacket and maxInFlight"

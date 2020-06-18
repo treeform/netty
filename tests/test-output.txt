@@ -23,6 +23,7 @@ REACTOR: server (127.0.0.1:2000)
 REACTOR: client (127.0.0.1:2001)
   CONN: 127.0.0.1:2000
 id should match
+single client disconnect
 testing large message
 492
 sent6006
@@ -39,7 +40,6 @@ many clients stress test
 
 punch through test
 MESSAGE hi
-single client disconnect
 testing maxUdpPacket and maxInFlight
 sent6006
 testing retry
