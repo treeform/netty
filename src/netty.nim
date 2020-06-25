@@ -1,7 +1,7 @@
-import hashes, nativesockets, net, flatty/hexprint, netty/timeseries, random,
+import hashes, nativesockets, net, netty/timeseries, random,
     sequtils, streams, strformat, times
 
-export Port, hexprint, timeseries
+export Port, timeseries
 
 const
   partMagic = 0xFFDDFF33.uint32
