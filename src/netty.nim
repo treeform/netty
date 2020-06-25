@@ -1,4 +1,4 @@
-import hashes, nativesockets, net, netty/hexprint, netty/timeseries, random,
+import hashes, nativesockets, net, flatty/hexprint, netty/timeseries, random,
     sequtils, streams, strformat, times
 
 export Port, hexprint, timeseries
