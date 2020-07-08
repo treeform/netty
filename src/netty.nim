@@ -1,5 +1,5 @@
-import hashes, nativesockets, net, netty/timeseries, random,
-    sequtils, streams, strformat, times
+import flatty/binny, hashes, nativesockets, net, netty/timeseries, random,
+    sequtils, strformat, times
 
 export Port, timeseries
 
@@ -220,15 +220,14 @@ proc sendNeededParts(reactor: Reactor) =
 
       part.sentTime = reactor.time
 
-      var stream = newStringStream()
-      stream.write(partMagic)
-      stream.write(part.sequenceNum)
-      stream.write(part.connId)
-      stream.write(part.partNum)
-      stream.write(part.numParts)
-      stream.write(part.data)
-      stream.setPosition(0)
-      let packet = stream.readAll()
+      var packet = newStringOfCap(headerSize + part.data.len)
+      packet.addUint32(partMagic)
+      packet.addUint32(part.sequenceNum)
+      packet.addUint32(part.connId)
+      packet.addUint16(part.partNum)
+      packet.addUint16(part.numParts)
+      packet.addStr(part.data)
+
       reactor.rawSend(conn.address, packet)
 
     conn.stats.inFlight = inFlight
@@ -240,14 +239,13 @@ proc sendSpecial(
   assert reactor.id == conn.reactorId
   assert conn.id == part.connId
 
-  var stream = newStringStream()
-  stream.write(magic)
-  stream.write(part.sequenceNum)
-  stream.write(part.connId)
-  stream.write(part.partNum)
-  stream.write(part.numParts)
-  stream.setPosition(0)
-  let packet = stream.readAll()
+  var packet = newStringOfCap(headerSize)
+  packet.addUint32(magic)
+  packet.addUint32(part.sequenceNum)
+  packet.addUint32(part.connId)
+  packet.addUint16(part.partNum)
+  packet.addUint16(part.numParts)
+
   reactor.rawSend(conn.address, packet)
 
 proc deleteAckedParts(reactor: Reactor) =
@@ -287,12 +285,9 @@ proc readParts(reactor: Reactor) =
 
     let address = initAddress(host, port.int)
 
-    var
-      stream = newStringStream(buf)
-      magic = stream.readUint32()
-
+    var magic = buf.readUint32(0)
     if magic == disconnectMagic:
-      let connId = stream.readUint32()
+      let connId = buf.readUint32(4)
       var conn = reactor.getConn(connId)
       if conn != nil:
         reactor.deadConnections.add(conn)
@@ -309,11 +304,11 @@ proc readParts(reactor: Reactor) =
       break
 
     var part = Part()
-    part.sequenceNum = stream.readUint32()
-    part.connId = stream.readUint32()
-    part.partNum = stream.readUint16()
-    part.numParts = stream.readUint16()
-    part.data = buf[headerSize ..^ 1]
+    part.sequenceNum = buf.readUint32(4)
+    part.connId = buf.readUint32(8)
+    part.partNum = buf.readUint16(12)
+    part.numParts = buf.readUint16(14)
+    part.data = buf.readStr(16, buf.len - 1)
 
     var conn = reactor.getConn(part.connId)
     if conn == nil:
@@ -431,12 +426,11 @@ proc sendMagic(
   connId: uint32,
   extra = ""
 ) =
-  var stream = newStringStream()
-  stream.write(magic)
-  stream.write(connId)
-  stream.write(extra)
-  stream.setPosition(0)
-  let packet = stream.readAll()
+  var packet = newStringOfCap(4 + 4 + extra.len)
+  packet.addUint32(magic)
+  packet.addUint32(connId)
+  packet.addStr(extra)
+
   reactor.socket.sendTo(address.host, address.port, packet)
 
 proc disconnect*(reactor: Reactor, conn: Connection) =

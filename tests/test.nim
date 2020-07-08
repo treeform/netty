@@ -1,4 +1,4 @@
-import os, osproc, streams, strformat
+import flatty/binny, os, osproc, streams, strformat
 
 include netty
 
@@ -303,13 +303,11 @@ block:
   assert server.newConnections.len == 0
   assert server.connections.len == 0
 
-  var stream = newStringStream()
-  stream.write(partMagic)
-  stream.write("aasdfasdfaasdfaasdfasdfsdfsdasdfasdfsaasdfasdffsadfaasdfasdfa")
-  stream.setPosition(0)
-  let packet = stream.readAll()
+  var msg = ""
+  msg.addUint32(partMagic)
+  msg.addStr("aasdfasdfaasdfaasdfasdfsdfsdasdfasdfsaasdfasdffsadfaasdfasdfa")
 
-  client.rawSend(c2s.address, packet)
+  client.rawSend(c2s.address, msg)
 
   client.tick()
   server.tick()
