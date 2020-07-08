@@ -10,3 +10,4 @@ srcDir        = "src"
 
 requires "nim >= 0.19.0"
 requires "snappy >= 0.1.0"
+requires "flatty >= 0.1.0"
