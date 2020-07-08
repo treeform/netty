@@ -123,7 +123,7 @@ func getConn(reactor: Reactor, connId: uint32): Connection =
     if conn.id == connId:
       return conn
 
-proc read(reactor: Reactor, conn: Connection): (bool, Message) =
+func read(reactor: Reactor, conn: Connection): (bool, Message) =
   if conn.recvParts.len == 0:
     return
 
@@ -158,7 +158,7 @@ proc read(reactor: Reactor, conn: Connection): (bool, Message) =
   inc conn.recvSequenceNum
   conn.recvParts.delete(0, numParts - 1)
 
-proc divideAndSend(reactor: Reactor, conn: Connection, data: string) =
+func divideAndSend(reactor: Reactor, conn: Connection, data: string) =
   ## Divides a packet into parts and gets it ready to be sent.
   assert data.len != 0
   conn.stats.inQueue += data.len
@@ -248,7 +248,7 @@ proc sendSpecial(
 
   reactor.rawSend(conn.address, packet)
 
-proc deleteAckedParts(reactor: Reactor) =
+func deleteAckedParts(reactor: Reactor) =
   for conn in reactor.connections:
     var pos, bytesAcked: int
     for part in conn.sendParts:
@@ -367,7 +367,7 @@ proc readParts(reactor: Reactor) =
       # Unrecognized packet
       discard
 
-proc combineParts(reactor: Reactor) =
+func combineParts(reactor: Reactor) =
   for conn in reactor.connections.mitems:
     while true:
       let (gotMsg, msg) = reactor.read(conn)
@@ -376,7 +376,7 @@ proc combineParts(reactor: Reactor) =
       else:
         break
 
-proc timeoutConnections(reactor: Reactor) =
+func timeoutConnections(reactor: Reactor) =
   ## See if any connections have timed out.
   var i = 0
   while i < reactor.connections.len:
@@ -415,7 +415,7 @@ proc connect*(reactor: Reactor, host: string, port: int): Connection =
   ## Starts a new connection to host and port.
   reactor.connect(initAddress(host, port))
 
-proc send*(reactor: Reactor, conn: Connection, data: string) =
+func send*(reactor: Reactor, conn: Connection, data: string) =
   assert reactor.id == conn.reactorId
   reactor.divideAndSend(conn, data)
 
