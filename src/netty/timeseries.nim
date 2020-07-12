@@ -5,12 +5,12 @@ type
     filled: Natural
     data: seq[float64]
 
-proc newTimeSeries*(max: Natural = 1000): TimeSeries =
+func newTimeSeries*(max: Natural = 1000): TimeSeries =
   ## Create new time series.
   result = TimeSeries()
   result.data = newSeq[float64](max)
 
-proc add*(timeSeries: var TimeSeries, value: float64) =
+func add*(timeSeries: var TimeSeries, value: float64) =
   ## Add sample to time series.
   if timeSeries.at >= timeSeries.data.len:
     timeSeries.at = 0
@@ -37,12 +37,12 @@ type
     filled: Natural
     data: seq[(float64, float64)]
 
-proc newTimedSamples*(max: Natural = 1000): TimedSamples =
+func newTimedSamples*(max: Natural = 1000): TimedSamples =
   ## Create new timed sample series.
   result = TimedSamples()
   result.data = newSeq[(float64, float64)](max)
 
-proc add*(timedSamples: var TimedSamples, time: float64, value: float64) =
+func add*(timedSamples: var TimedSamples, time: float64, value: float64) =
   ## Add sample value to the series.
   if timedSamples.at >= timedSamples.data.len:
     timedSamples.at = 0
