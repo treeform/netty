@@ -1,5 +1,5 @@
 import flatty/binny, hashes, nativesockets, net, netty/timeseries, random,
-    sequtils, strformat, times
+    sequtils, std/monotimes, strformat, times
 
 export Port, timeseries
 
@@ -29,6 +29,7 @@ type
 
   Reactor* = ref object
     ## Main networking system that can open or receive connections.
+    r: Rand
     id*: uint32
     address*: Address
     socket: Socket
@@ -79,9 +80,6 @@ type
     sequenceNum*: uint32
     data*: string
 
-var
-  r = initRand((epochTime() * 1_000_000).int)
-
 func initAddress*(host: string, port: int): Address =
   result.host = host
   result.port = Port(port)
@@ -106,12 +104,12 @@ func hash*(x: Address): Hash =
   ## Computes a hash for the address.
   hash((x.host, x.port))
 
-proc genId(): uint32 {.inline.} =
-  r.rand(uint32.high.int).uint32
+func genId(reactor: Reactor): uint32 {.inline.} =
+  reactor.r.rand(uint32.high.int).uint32
 
-proc newConnection(reactor: Reactor, address: Address): Connection =
+func newConnection(reactor: Reactor, address: Address): Connection =
   result = Connection()
-  result.id = genId()
+  result.id = reactor.genId()
   result.reactorId = reactor.id
   result.address = address
 
@@ -192,7 +190,7 @@ func divideAndSend(reactor: Reactor, conn: Connection, data: string) =
 proc rawSend(reactor: Reactor, address: Address, packet: string) =
   ## Low level send to a socket.
   if reactor.debug.dropRate != 0:
-    if rand(1.0) <= reactor.debug.dropRate:
+    if reactor.r.rand(1.0) <= reactor.debug.dropRate:
       return
   try:
     reactor.socket.sendTo(address.host, address.port, packet)
@@ -321,7 +319,7 @@ proc readParts(reactor: Reactor) =
         continue
 
     if reactor.debug.dropRate > 0.0:
-      if rand(1.0) <= reactor.debug.dropRate:
+      if reactor.r.rand(1.0) <= reactor.debug.dropRate:
         continue
 
     conn.lastActiveTime = reactor.time
@@ -403,7 +401,7 @@ proc tick*(reactor: Reactor) =
   reactor.deleteAckedParts()
   reactor.timeoutConnections()
 
-proc connect*(reactor: Reactor, address: Address): Connection =
+func connect*(reactor: Reactor, address: Address): Connection =
   ## Starts a new connection to an address.
   result = newConnection(reactor, address)
   result.reactorId = reactor.id
@@ -411,7 +409,7 @@ proc connect*(reactor: Reactor, address: Address): Connection =
   reactor.connections.add(result)
   reactor.newConnections.add(result)
 
-proc connect*(reactor: Reactor, host: string, port: int): Connection =
+func connect*(reactor: Reactor, host: string, port: int): Connection =
   ## Starts a new connection to host and port.
   reactor.connect(initAddress(host, port))
 
@@ -453,7 +451,8 @@ proc punchThrough*(reactor: Reactor, host: string, port: int) =
 proc newReactor*(address: Address): Reactor =
   ## Creates a new reactor with address.
   result = Reactor()
-  result.id = genId()
+  result.r = initRand(getMonoTime().ticks)
+  result.id = result.genId()
   result.maxInFlight = defaultMaxInFlight
 
   result.address = address
