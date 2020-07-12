@@ -1,5 +1,5 @@
 import flatty/binny, hashes, nativesockets, net, netty/timeseries, random,
-    sequtils, strformat, times, std/monotimes
+    sequtils, std/monotimes, strformat, times
 
 export Port, timeseries
 
