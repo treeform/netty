@@ -1,4 +1,4 @@
-import netty
+import netty, os
 
 # create connection
 var client = newReactor()
@@ -14,3 +14,4 @@ while true:
   for msg in client.messages:
     # print message data
     echo "GOT MESSAGE: ", msg.data
+  sleep(1)
