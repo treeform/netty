@@ -1,6 +1,6 @@
 # nim c -r --threads:on --tlsEmulation:off tests\chatclientthreads
 
-import netty, terminal
+import netty, os, terminal
 
 var client = newReactor()
 var connection = client.connect("127.0.0.1", 2001)
@@ -60,3 +60,4 @@ while true:
 
     # reset character
     singleChar = char(0)
+  sleep(1)

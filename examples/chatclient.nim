@@ -1,4 +1,4 @@
-import netty
+import netty, os
 
 var client = newReactor()
 var connection = client.connect("127.0.0.1", 2001)
@@ -17,3 +17,4 @@ while true:
   let line = readLine(stdin)
   if line.len > 0:
     client.send(connection, name & ":" & line)
+  sleep(1)
