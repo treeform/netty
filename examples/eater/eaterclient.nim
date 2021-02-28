@@ -1,5 +1,5 @@
-import fidget, fidget/opengl/base, fidget/opengl/context, netty, netty/flatty,
-    random, strformat, tables, vmath
+import fidget, fidget/opengl/base, fidget/opengl/context, netty, flatty,
+    random, strformat, tables, vmath, bumpy
 
 randomize()
 
@@ -32,7 +32,7 @@ loadFont("Changa Bold", "Changa-Bold.ttf")
 proc tickMain() =
   # Note: this function runs at 240hz.
   #echo focused
-  if focused and mouse.pos.inRect(vec2(0, 0), windowFrame):
+  if focused and mouse.pos.overlaps(rect(vec2(0, 0), windowFrame)):
     if ((windowFrame / 2) - mouse.pos).length > 0:
       me.vel -= dir(windowFrame / 2, mouse.pos) * 0.1
   me.vel *= 0.9 # friction
@@ -65,15 +65,15 @@ proc drawMain() =
 
   for x in 0 .. 10:
     for y in 0 .. 10:
-      ctx.drawSprite("tile.png", vec2(x.float32 * 100, y.float32 * 100))
+      ctx.drawSprite("data/tile.png", vec2(x.float32 * 100, y.float32 * 100))
 
-  ctx.drawSprite("star.png", me.pos)
+  ctx.drawSprite("data/star.png", me.pos)
 
   for id, other in others.pairs:
-    ctx.drawSprite("star.png", othersSmoothPos[id], color = color(1, 0, 0, 1))
+    ctx.drawSprite("data/star.png", othersSmoothPos[id], color = color(1, 0, 0, 1))
 
   for pos in debugPosSeq:
-    ctx.drawSprite("star.png", pos, color = color(0, 1, 0, 1), scale = 0.05)
+    ctx.drawSprite("data/star.png", pos, color = color(0, 1, 0, 1), scale = 0.05)
 
   ctx.restoreTransform()
 
