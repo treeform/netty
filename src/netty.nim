@@ -279,7 +279,7 @@ proc readParts(reactor: Reactor) =
         buf, reactor.debug.maxUdpPacket + headerSize, host, port
       )
     except:
-      when defined(magicTestSleep):
+      when defined(nettyMagicSleep):
         sleep(1)
       break
 
