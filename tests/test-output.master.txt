@@ -1,0 +1,47 @@
+Testing netty
+simple test
+MESSAGE hi
+main test
+REACTOR: server (127.0.0.1:3001)
+REACTOR: client (127.0.0.1:3002)
+connect
+REACTOR: server (127.0.0.1:3001)
+REACTOR: client (127.0.0.1:3002)
+  CONN: 127.0.0.1:3001
+client --------- 'hey you' ----------> server
+server should have message
+client should have part ACK:false
+REACTOR: server (127.0.0.1:3001)
+  CONN: 127.0.0.1:3002
+  MESSAGE: Message(from: 127.0.0.1:3002 #0, size:7)
+REACTOR: client (127.0.0.1:3002)
+  CONN: 127.0.0.1:3001
+    SEND PART: Part(0:0/1 ACK:false)
+client should not have any parts now, acked parts deleted
+REACTOR: server (127.0.0.1:3001)
+  CONN: 127.0.0.1:3002
+REACTOR: client (127.0.0.1:3002)
+  CONN: 127.0.0.1:3001
+id should match
+single client disconnect
+testing large message
+492
+sent6006
+got6006
+they matchtrue
+many messages stress test
+1000 messages
+
+many messages stress test with packet loss 10%
+20% drop rate
+
+many clients stress test
+100 clients
+
+punch through test
+MESSAGE hi
+testing maxUdpPacket and maxInFlight
+sent6006
+testing retry
+testing junk data
+disconnect packet

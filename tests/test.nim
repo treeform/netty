@@ -2,7 +2,9 @@ import flatty/binny, os, osproc, streams, strformat
 
 include netty
 
-echo "Testing netty"
+var s = newFileStream("tests/test-output.txt", fmWrite)
+
+s.writeLine "Testing netty"
 
 var nextPortNumber = 3000
 proc nextPort(): int =
@@ -10,18 +12,18 @@ proc nextPort(): int =
   inc nextPortNumber
 
 proc display(name: string, r: Reactor) =
-  echo "REACTOR: ", name, " (", r.address, ")"
+  s.writeLine "REACTOR: ", name, " (", r.address, ")"
   for c in r.connections:
-    echo "  CONN: ", c.address
+    s.writeLine "  CONN: ", c.address
     for part in c.sendParts:
-      echo "    SEND PART: ", part
+      s.writeLine "    SEND PART: ", part
     for part in c.recvParts:
-      echo "    RECV PART: ", part
+      s.writeLine "    RECV PART: ", part
   for msg in r.messages:
-    echo "  MESSAGE: ", msg
+    s.writeLine "  MESSAGE: ", msg
 
 block:
-  echo "simple test"
+  s.writeLine "simple test"
   var server = newReactor("127.0.0.1", nextPort())
   var client = newReactor()
   var c2s = client.connect(server.address)
@@ -29,10 +31,10 @@ block:
   client.tick()
   server.tick()
   for msg in server.messages:
-    echo "MESSAGE ", msg.data
+    s.writeLine "MESSAGE ", msg.data
 
 block:
-  echo "main test"
+  s.writeLine "main test"
 
   var server = newReactor("127.0.0.1", nextPort())
   var client = newReactor("127.0.0.1", nextPort())
@@ -40,20 +42,20 @@ block:
   display("server", server)
   display("client", client)
 
-  echo "connect"
+  s.writeLine "connect"
   var c2s = client.connect(server.address)
 
   display("server", server)
   display("client", client)
 
-  echo "client --------- 'hey you' ----------> server"
+  s.writeLine "client --------- 'hey you' ----------> server"
 
   client.send(c2s, "hey you")
   client.tick()
   server.tick()
 
-  echo "server should have message"
-  echo "client should have part ACK:false"
+  s.writeLine "server should have message"
+  s.writeLine "client should have part ACK:false"
 
   display("server", server)
   display("client", client)
@@ -61,16 +63,16 @@ block:
   server.tick() # get message, ack message
   client.tick() # get ack
 
-  echo "client should not have any parts now, acked parts deleted"
+  s.writeLine "client should not have any parts now, acked parts deleted"
 
   display("server", server)
   display("client", client)
 
-  echo "id should match"
-  assert server.connections[0].id == client.connections[0].id
+  s.writeLine "id should match"
+  doAssert server.connections[0].id == client.connections[0].id
 
 block:
-  echo "single client disconnect"
+  s.writeLine "single client disconnect"
   var server = newReactor("127.0.0.1", nextPort())
   var client = newReactor()
   client.debug.tickTime = 1.0
@@ -80,24 +82,24 @@ block:
   client.tick()
   server.tick()
   client.tick()
-  assert len(server.messages) == 1, $server.messages.len
-  assert len(server.connections) == 1, $server.connections.len
+  doAssert len(server.messages) == 1, $server.messages.len
+  doAssert len(server.connections) == 1, $server.connections.len
   client.debug.tickTime = 1.0 + connTimeout
   client.tick()
-  assert len(client.deadConnections) == 1
-  assert len(client.connections) == 0
+  doAssert len(client.deadConnections) == 1
+  doAssert len(client.connections) == 0
 
 block:
-  echo "testing large message"
+  s.writeLine "testing large message"
 
   var server = newReactor("127.0.0.1", nextPort())
   var client = newReactor("127.0.0.1", nextPort())
 
-  echo client.debug.maxUdpPacket
+  s.writeLine client.debug.maxUdpPacket
   var buffer = "large:"
   for i in 0 ..< 1000:
     buffer.add "<data>"
-  echo "sent", buffer.len
+  s.writeLine "sent", buffer.len
   var c2s = client.connect(server.address)
   client.send(c2s, buffer)
 
@@ -106,14 +108,14 @@ block:
     server.tick()
 
     for msg in server.messages:
-      echo "got", msg.data.len
-      echo "they match", msg.data == buffer
+      s.writeLine "got", msg.data.len
+      s.writeLine "they match", msg.data == buffer
 
 block:
-  echo "many messages stress test"
+  s.writeLine "many messages stress test"
 
   var dataToSend = newSeq[string]()
-  echo "1000 messages"
+  s.writeLine "1000 messages"
   for i in 0 ..< 1000:
     dataToSend.add &"data #{i}, its cool!"
 
@@ -130,15 +132,15 @@ block:
     for msg in server.messages:
       var index = dataToSend.find(msg.data)
       # make sure message is there
-      assert index != -1
+      doAssert index != -1
       dataToSend.delete(index)
     if dataToSend.len == 0: break
   # make sure all messages made it
-  assert dataToSend.len == 0, &"datatoSend.len: {datatoSend.len}"
-  echo dataToSend
+  doAssert dataToSend.len == 0, &"datatoSend.len: {datatoSend.len}"
+  s.writeLine dataToSend
 
 block:
-  echo "many messages stress test with packet loss 10%"
+  s.writeLine "many messages stress test with packet loss 10%"
 
   var dataToSend = newSeq[string]()
   for i in 0 ..< 1000:
@@ -148,7 +150,7 @@ block:
   var server = newReactor("127.0.0.1", nextPort())
   var client = newReactor("127.0.0.1", nextPort())
   client.debug.dropRate = 0.2 # 20% packet loss rate is broken for most things
-  echo "20% drop rate"
+  s.writeLine "20% drop rate"
   var c2s = client.connect(server.address)
   for d in dataToSend:
     client.send(c2s, d)
@@ -159,17 +161,17 @@ block:
     for msg in server.messages:
       var index = dataToSend.find(msg.data)
       # make sure message is there
-      assert index != -1
+      doAssert index != -1
       dataToSend.delete(index)
     if dataToSend.len == 0: break
   # make sure all messages made it
-  echo dataToSend
-  assert dataToSend.len == 0
+  s.writeLine dataToSend
+  doAssert dataToSend.len == 0
 
 block:
-  echo "many clients stress test"
+  s.writeLine "many clients stress test"
 
-  echo "100 clients"
+  s.writeLine "100 clients"
   var dataToSend = newSeq[string]()
   for i in 0 ..< 100:
     dataToSend.add &"data #{i}, its cool!"
@@ -185,26 +187,26 @@ block:
   server.debug.tickTime = 1.0
   server.tick()
 
-  assert len(server.connections) == 100
-  assert len(server.newConnections) == 100
+  doAssert len(server.connections) == 100
+  doAssert len(server.newConnections) == 100
 
   for msg in server.messages:
     var index = dataToSend.find(msg.data)
     # make sure message is there
-    assert index != -1
+    doAssert index != -1
     dataToSend.delete(index)
   # make sure all messages made it
-  assert dataToSend.len == 0
-  echo dataToSend
+  doAssert dataToSend.len == 0
+  s.writeLine dataToSend
 
   server.debug.tickTime = 1.0 + connTimeout
   server.tick()
 
-  assert len(server.connections) == 0, $server.connections.len
-  assert len(server.deadConnections) == 100, $server.deadConnections.len
+  doAssert len(server.connections) == 0, $server.connections.len
+  doAssert len(server.deadConnections) == 100, $server.deadConnections.len
 
 block:
-  echo "punch through test"
+  s.writeLine "punch through test"
   var server = newReactor("127.0.0.1", nextPort())
   var client = newReactor()
   var c2s = client.connect(server.address)
@@ -213,10 +215,10 @@ block:
   client.tick()
   server.tick()
   for msg in server.messages:
-    echo "MESSAGE ", msg.data
+    s.writeLine "MESSAGE ", msg.data
 
 block:
-  echo "testing maxUdpPacket and maxInFlight"
+  s.writeLine "testing maxUdpPacket and maxInFlight"
 
   var server = newReactor("127.0.0.1", nextPort())
   var client = newReactor("127.0.0.1", nextPort())
@@ -227,44 +229,44 @@ block:
   var buffer = "large:"
   for i in 0 ..< 1000:
     buffer.add "<data>"
-  echo "sent", buffer.len
+  s.writeLine "sent", buffer.len
   var c2s = client.connect(server.address)
   client.send(c2s, buffer)
   client.send(c2s, buffer)
 
-  assert c2s.sendParts.len == 122
+  doAssert c2s.sendParts.len == 122
 
   client.tick() # can only send 100 parts due to maxInFlight and maxUdpPacket
 
-  assert c2s.stats.saturated == true
+  doAssert c2s.stats.saturated == true
 
   server.tick() # receives 100 parts, sends acks back
 
-  assert server.messages.len == 1, &"len: {server.messages.len}"
-  assert c2s.stats.inFlight < client.maxInFlight,
+  doAssert server.messages.len == 1, &"len: {server.messages.len}"
+  doAssert c2s.stats.inFlight < client.maxInFlight,
     &"stats.inFlight: {c2s.stats.inFlight}"
-  assert c2s.stats.saturated == true
+  doAssert c2s.stats.saturated == true
 
   client.tick() # process the 100 acks, 22 parts left in flight
 
-  assert c2s.sendParts.len == 22
-  assert c2s.stats.inFlight == 2106, &"stats.inFlight: {c2s.stats.inFlight}"
-  assert c2s.stats.saturated == false
+  doAssert c2s.sendParts.len == 22
+  doAssert c2s.stats.inFlight == 2106, &"stats.inFlight: {c2s.stats.inFlight}"
+  doAssert c2s.stats.saturated == false
 
   server.tick() # process the last 22 parts, send 22 acks
 
-  assert server.messages.len == 1, &"len: {server.messages.len}"
+  doAssert server.messages.len == 1, &"len: {server.messages.len}"
 
   client.tick() # receive the 22 acks
 
-  assert c2s.sendParts.len == 0
-  assert c2s.stats.inFlight == 0, &"stats.inFlight: {c2s.stats.inFlight}"
-  assert c2s.stats.saturated == false
-  assert c2s.stats.latencyTs.avg() > 0
-  assert c2s.stats.throughputTs.avg() > 0
+  doAssert c2s.sendParts.len == 0
+  doAssert c2s.stats.inFlight == 0, &"stats.inFlight: {c2s.stats.inFlight}"
+  doAssert c2s.stats.saturated == false
+  doAssert c2s.stats.latencyTs.avg() > 0
+  doAssert c2s.stats.throughputTs.avg() > 0
 
 block:
-  echo "testing retry"
+  s.writeLine "testing retry"
 
   var server = newReactor("127.0.0.1", nextPort())
   var client = newReactor("127.0.0.1", nextPort())
@@ -274,7 +276,7 @@ block:
 
   client.tick()
 
-  assert c2s.sendParts.len == 1
+  doAssert c2s.sendParts.len == 1
 
   let firstSentTime = c2s.sendParts[0].sentTime
 
@@ -282,10 +284,10 @@ block:
 
   client.tick()
 
-  assert c2s.sendParts[0].sentTime != firstSentTime # We sent the part again
+  doAssert c2s.sendParts[0].sentTime != firstSentTime # We sent the part again
 
 block:
-  echo "testing junk data"
+  s.writeLine "testing junk data"
 
   var server = newReactor("127.0.0.1", nextPort())
   var client = newReactor("127.0.0.1", nextPort())
@@ -298,8 +300,8 @@ block:
   server.tick()
 
   # No new connection, no crash
-  assert server.newConnections.len == 0
-  assert server.connections.len == 0
+  doAssert server.newConnections.len == 0
+  doAssert server.connections.len == 0
 
   var msg = ""
   msg.addUint32(partMagic)
@@ -311,27 +313,27 @@ block:
   server.tick()
 
   # No new connection, no crash
-  assert server.newConnections.len == 0
-  assert server.connections.len == 0
+  doAssert server.newConnections.len == 0
+  doAssert server.connections.len == 0
 
 block:
-  echo "disconnect packet"
+  s.writeLine "disconnect packet"
   var server = newReactor("127.0.0.1", nextPort())
   var client = newReactor()
   var c2s = client.connect(server.address)
   client.send(c2s, "hi")
   client.tick()
   server.tick()
-  assert len(server.messages) == 1
-  assert len(server.connections) == 1
-  assert len(client.connections) == 1
+  doAssert len(server.messages) == 1
+  doAssert len(server.connections) == 1
+  doAssert len(client.connections) == 1
   client.disconnect(c2s)
-  assert len(client.deadConnections) == 1
-  assert len(client.connections) == 0
+  doAssert len(client.deadConnections) == 1
+  doAssert len(client.connections) == 0
   client.tick()
   server.tick()
-  assert len(server.deadConnections) == 1
-  assert len(server.connections) == 0
+  doAssert len(server.deadConnections) == 1
+  doAssert len(server.connections) == 0
 
 block:
   var server = newReactor("127.0.0.1", nextPort())
@@ -353,3 +355,11 @@ block:
     server.tick()
     if client.connections.len == 0:
       break
+
+s.close()
+
+var n = readFile("tests/test-output.txt")
+var m = readFile("tests/test-output.master.txt")
+
+if n != m:
+  s.writeLine "Output does not match master."
