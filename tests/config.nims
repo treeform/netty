@@ -1,4 +1,7 @@
 --path:"../src"
-# On mac os localhost writes take longer, so sleep in stragic places
-# to make it like windows and linux.
---define:"magicTestSleep"
+
+import distros
+when detectOs(MacOSX):
+    # On macOS localhost writes take longer, so sleep in strategic places
+    # to make it like Windows and Linux.
+    --define:"magicTestSleep"
