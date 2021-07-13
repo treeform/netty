@@ -1,5 +1,9 @@
 # Netty - reliable UDP connection for Nim.
 
+`nimble install netty`
+
+![Github Actions](https://github.com/treeform/netty/workflows/Github%20Actions/badge.svg)
+
 Netty is a reliable connection over UDP aimed at games. Normally UDP packets can get duplicated, dropped, or come out of order. Netty makes sure packets are not duplicated, re-sends them if they get dropped, and all packets come in order. UDP packets might also get split if they are above 512 bytes and also can fail to be sent if they are bigger than 1-2k. Netty breaks up big packets and sends them in pieces making sure each piece comes reliably in order. Finally sometimes it's impossible for two clients to communicate direclty with TCP because of NATs, but Netty provides hole punching which allows them to connect.
 
 ## Is Netty a implementation of TCP?
