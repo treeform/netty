@@ -1,3 +1,5 @@
+<img src="docs/nettyBanner.png">
+
 # Netty - reliable UDP connection for Nim.
 
 `nimble install netty`

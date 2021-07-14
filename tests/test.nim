@@ -28,7 +28,6 @@ block:
   # connect
   var c2s = client.connect(server.address)
 
-
   # client --------- 'hey you' ----------> server
 
   client.send(c2s, "hey you")
@@ -137,7 +136,7 @@ block:
   for i in 0 ..< 1000:
     client.tick()
     server.tick()
-    sleep(1)
+    sleep(2)
     for msg in server.messages:
       var index = dataToSend.find(msg.data)
       # make sure message is there
