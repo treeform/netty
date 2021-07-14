@@ -268,7 +268,7 @@ func deleteAckedParts(reactor: Reactor) =
 
 proc readParts(reactor: Reactor) =
   var
-    buf = newStringOfCap(reactor.debug.maxUdpPacket)
+    buf = newStringOfCap(reactor.debug.maxUdpPacket + headerSize)
     host: string
     port: Port
 
@@ -279,6 +279,8 @@ proc readParts(reactor: Reactor) =
         buf, reactor.debug.maxUdpPacket + headerSize, host, port
       )
     except:
+      when defined(nettyMagicSleep):
+        sleep(1)
       break
 
     let address = initAddress(host, port.int)
