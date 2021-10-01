@@ -1,4 +1,4 @@
-import flatty/binny, os, osproc, streams, strformat
+import flatty/binny, os, strformat
 
 include netty
 

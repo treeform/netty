@@ -295,12 +295,12 @@ proc readParts(reactor: Reactor) =
       continue
 
     if magic == punchMagic:
-      #echo &"Received punch through from {address}"
+      # echo &"Received punch through from {address}"
       continue
 
     if byteLen < headerSize:
       # A valid packet will have at least the header.
-      echo &"Received packet of invalid size {reactor.address}"
+      # echo &"Received packet of invalid size {reactor.address}"
       break
 
     var part = Part()
