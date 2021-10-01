@@ -105,7 +105,7 @@ func hash*(x: Address): Hash =
   hash((x.host, x.port))
 
 func genId(reactor: Reactor): uint32 {.inline.} =
-  reactor.r.rand(uint32.high.int).uint32
+  reactor.r.rand(0u32..uint32.high).uint32
 
 func newConnection(reactor: Reactor, address: Address): Connection =
   result = Connection()
