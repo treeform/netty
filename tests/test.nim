@@ -345,3 +345,17 @@ block:
       break
 
   doAssert gotNumber == 20
+
+block:
+  var server = newReactor("127.0.0.1", nextPort())
+  for i in 0 ..< 100:
+    server.tick()
+    for msg in server.messages:
+      echo "GOT MESSAGE: ", msg.data
+      server.send(msg.conn, "you said:" & msg.data)
+    if i == 10:
+      var client = newReactor()
+      var c2s = client.connect(server.address)
+      client.send(c2s, "hi")
+      client.disconnect(c2s)
+      client.disconnect(c2s)

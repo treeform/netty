@@ -1,5 +1,5 @@
 import flatty/binny, hashes, nativesockets, net, netty/timeseries, random,
-    sequtils, std/monotimes, strformat, times
+    sequtils, std/monotimes, strformat, times, os
 
 export Port, timeseries
 
@@ -439,7 +439,9 @@ proc disconnect*(reactor: Reactor, conn: Connection) =
   for i in 0 .. 10:
     reactor.sendMagic(conn.address, disconnectMagic, conn.id)
   reactor.deadConnections.add(conn)
-  reactor.connections.delete(reactor.connections.find(conn))
+  let index = reactor.connections.find(conn)
+  if index != -1:
+    reactor.connections.delete(index)
 
 proc punchThrough*(reactor: Reactor, address: Address) =
   ## Tries to punch through to host/port.
