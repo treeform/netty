@@ -2,7 +2,7 @@ name: docs
 on:
   push:
     branches:
-      - docs
+      - master
 env:
   nim-version: 'stable'
   nim-src: src/${{ github.event.repository.name }}.nim
