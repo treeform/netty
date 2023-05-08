@@ -1,0 +1,10 @@
+TimeSeries	netty/timeseries.html#TimeSeries	timeseries: TimeSeries	
+newTimeSeries	netty/timeseries.html#newTimeSeries,Natural	timeseries: newTimeSeries(max: Natural = 1000): TimeSeries	
+add	netty/timeseries.html#add,TimeSeries,float64	timeseries: add(timeSeries: var TimeSeries; value: float64)	
+avg	netty/timeseries.html#avg,TimeSeries	timeseries: avg(timeSeries: TimeSeries): float64	
+max	netty/timeseries.html#max,TimeSeries	timeseries: max(timeSeries: TimeSeries): float64	
+TimedSamples	netty/timeseries.html#TimedSamples	timeseries: TimedSamples	
+newTimedSamples	netty/timeseries.html#newTimedSamples,Natural	timeseries: newTimedSamples(max: Natural = 1000): TimedSamples	
+add	netty/timeseries.html#add,TimedSamples,float64,float64	timeseries: add(timedSamples: var TimedSamples; time: float64; value: float64)	
+avg	netty/timeseries.html#avg,TimedSamples	timeseries: avg(timedSamples: TimedSamples): float64	
+max	netty/timeseries.html#max,TimedSamples	timeseries: max(timedSamples: TimedSamples): float64	
