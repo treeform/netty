@@ -6,7 +6,7 @@
 
 ![Github Actions](https://github.com/treeform/netty/workflows/Github%20Actions/badge.svg)
 
-[API reference](https://nimdocs.com/treeform/netty)
+[API reference](https://treeform.github.io/netty)
 
 ## About
 
@@ -14,7 +14,7 @@ Netty is a reliable connection over UDP aimed at games. Normally UDP packets can
 
 ### Documentation
 
-API reference: https://nimdocs.com/treeform/netty
+API reference: https://treeform.github.io/netty
 
 ## Is Netty a implementation of TCP?
 
