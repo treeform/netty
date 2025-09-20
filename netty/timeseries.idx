@@ -1,10 +1,14 @@
-TimeSeries	netty/timeseries.html#TimeSeries	timeseries: TimeSeries	
-newTimeSeries	netty/timeseries.html#newTimeSeries,Natural	timeseries: newTimeSeries(max: Natural = 1000): TimeSeries	
-add	netty/timeseries.html#add,TimeSeries,float64	timeseries: add(timeSeries: var TimeSeries; value: float64)	
-avg	netty/timeseries.html#avg,TimeSeries	timeseries: avg(timeSeries: TimeSeries): float64	
-max	netty/timeseries.html#max,TimeSeries	timeseries: max(timeSeries: TimeSeries): float64	
-TimedSamples	netty/timeseries.html#TimedSamples	timeseries: TimedSamples	
-newTimedSamples	netty/timeseries.html#newTimedSamples,Natural	timeseries: newTimedSamples(max: Natural = 1000): TimedSamples	
-add	netty/timeseries.html#add,TimedSamples,float64,float64	timeseries: add(timedSamples: var TimedSamples; time: float64; value: float64)	
-avg	netty/timeseries.html#avg,TimedSamples	timeseries: avg(timedSamples: TimedSamples): float64	
-max	netty/timeseries.html#max,TimedSamples	timeseries: max(timedSamples: TimedSamples): float64	
+nimTitle	timeseries	netty/timeseries.html	module src/netty/timeseries		0
+nim	TimeSeries	netty/timeseries.html#TimeSeries	type TimeSeries		2
+nim	newTimeSeries	netty/timeseries.html#newTimeSeries,Natural	proc newTimeSeries(max: Natural = 1000): TimeSeries		8
+nim	add	netty/timeseries.html#add,TimeSeries,float64	proc add(timeSeries: var TimeSeries; value: float64)		13
+nim	avg	netty/timeseries.html#avg,TimeSeries	proc avg(timeSeries: TimeSeries): float64		21
+nim	max	netty/timeseries.html#max,TimeSeries	proc max(timeSeries: TimeSeries): float64		29
+nim	TimedSamples	netty/timeseries.html#TimedSamples	type TimedSamples		34
+nim	newTimedSamples	netty/timeseries.html#newTimedSamples,Natural	proc newTimedSamples(max: Natural = 1000): TimedSamples		40
+nim	add	netty/timeseries.html#add,TimedSamples,float64,float64	proc add(timedSamples: var TimedSamples; time: float64; value: float64)		45
+nim	avg	netty/timeseries.html#avg,TimedSamples	proc avg(timedSamples: TimedSamples): float64		53
+nim	max	netty/timeseries.html#max,TimedSamples	proc max(timedSamples: TimedSamples): float64		71
+nimgrp	avg	netty/timeseries.html#avg-procs-all	proc		21
+nimgrp	add	netty/timeseries.html#add-procs-all	proc		13
+nimgrp	max	netty/timeseries.html#max-procs-all	proc		29

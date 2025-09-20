@@ -1,22 +1,27 @@
-Address	netty.html#Address	netty: Address	
-DebugConfig	netty.html#DebugConfig	netty: DebugConfig	
-Reactor	netty.html#Reactor	netty: Reactor	
-ConnectionStats	netty.html#ConnectionStats	netty: ConnectionStats	
-Connection	netty.html#Connection	netty: Connection	
-Message	netty.html#Message	netty: Message	
-initAddress	netty.html#initAddress,string,int	netty: initAddress(host: string; port: int): Address	
-`$`	netty.html#$,Address	netty: `$`(address: Address): string	
-`$`	netty.html#$,Connection	netty: `$`(conn: Connection): string	
-`$`	netty.html#$,Part	netty: `$`(part: Part): string	
-`$`	netty.html#$,Message	netty: `$`(msg: Message): string	
-hash	netty.html#hash,Address	netty: hash(x: Address): Hash	
-tick	netty.html#tick,Reactor	netty: tick(reactor: Reactor)	
-connect	netty.html#connect,Reactor,Address	netty: connect(reactor: Reactor; address: Address): Connection	
-connect	netty.html#connect,Reactor,string,int	netty: connect(reactor: Reactor; host: string; port: int): Connection	
-send	netty.html#send,Reactor,Connection,string	netty: send(reactor: Reactor; conn: Connection; data: string)	
-disconnect	netty.html#disconnect,Reactor,Connection	netty: disconnect(reactor: Reactor; conn: Connection)	
-punchThrough	netty.html#punchThrough,Reactor,Address	netty: punchThrough(reactor: Reactor; address: Address)	
-punchThrough	netty.html#punchThrough,Reactor,string,int	netty: punchThrough(reactor: Reactor; host: string; port: int)	
-newReactor	netty.html#newReactor,Address	netty: newReactor(address: Address): Reactor	
-newReactor	netty.html#newReactor,string,int	netty: newReactor(host: string; port: int): Reactor	
-newReactor	netty.html#newReactor	netty: newReactor(): Reactor	
+nimTitle	netty	netty.html	module src/netty		0
+nim	Address	netty.html#Address	object Address		18
+nim	DebugConfig	netty.html#DebugConfig	object DebugConfig		23
+nim	Reactor	netty.html#Reactor	type Reactor		30
+nim	ConnectionStats	netty.html#ConnectionStats	object ConnectionStats		45
+nim	Connection	netty.html#Connection	type Connection		52
+nim	Message	netty.html#Message	object Message		78
+nim	initAddress	netty.html#initAddress,string,int	proc initAddress(host: string; port: int): Address		83
+nim	`$`	netty.html#$,Address	proc `$`(address: Address): string		87
+nim	`$`	netty.html#$,Connection	proc `$`(conn: Connection): string		91
+nim	`$`	netty.html#$,Part	proc `$`(part: Part): string		95
+nim	`$`	netty.html#$,Message	proc `$`(msg: Message): string		99
+nim	hash	netty.html#hash,Address	proc hash(x: Address): Hash		103
+nim	tick	netty.html#tick,Reactor	proc tick(reactor: Reactor)		390
+nim	connect	netty.html#connect,Reactor,Address	proc connect(reactor: Reactor; address: Address): Connection		406
+nim	connect	netty.html#connect,Reactor,string,int	proc connect(reactor: Reactor; host: string; port: int): Connection		414
+nim	send	netty.html#send,Reactor,Connection,string	proc send(reactor: Reactor; conn: Connection; data: string)		418
+nim	disconnect	netty.html#disconnect,Reactor,Connection	proc disconnect(reactor: Reactor; conn: Connection)		436
+nim	punchThrough	netty.html#punchThrough,Reactor,Address	proc punchThrough(reactor: Reactor; address: Address)		446
+nim	punchThrough	netty.html#punchThrough,Reactor,string,int	proc punchThrough(reactor: Reactor; host: string; port: int)		451
+nim	newReactor	netty.html#newReactor,Address	proc newReactor(address: Address): Reactor		455
+nim	newReactor	netty.html#newReactor,string,int	proc newReactor(host: string; port: int): Reactor		479
+nim	newReactor	netty.html#newReactor	proc newReactor(): Reactor		483
+nimgrp	newreactor	netty.html#newReactor-procs-all	proc		455
+nimgrp	$	netty.html#$-procs-all	proc		87
+nimgrp	connect	netty.html#connect-procs-all	proc		406
+nimgrp	punchthrough	netty.html#punchThrough-procs-all	proc		446
