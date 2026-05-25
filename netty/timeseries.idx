@@ -1,4 +1,4 @@
-nimTitle	timeseries	netty/timeseries.html	module src/netty/timeseries		0
+nimTitle	timeseries	netty/timeseries.html	module netty/timeseries		0
 nim	TimeSeries	netty/timeseries.html#TimeSeries	type TimeSeries		2
 nim	newTimeSeries	netty/timeseries.html#newTimeSeries,Natural	proc newTimeSeries(max: Natural = 1000): TimeSeries		8
 nim	add	netty/timeseries.html#add,TimeSeries,float64	proc add(timeSeries: var TimeSeries; value: float64)		13

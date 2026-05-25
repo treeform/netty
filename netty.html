@@ -5,7 +5,7 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>src/netty</title>
+<title>netty</title>
 
 <!-- Google fonts -->
 <link href='https://fonts.googleapis.com/css?family=Lato:400,600,900' rel='stylesheet' type='text/css'/>
@@ -16,15 +16,18 @@
 <link rel="icon" type="image/png" sizes="32x32" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAA3XAAAN1wFCKJt4AAAAB3RJTUUH4QQQEwksSS9ZWwAAAk1JREFUWMPtll2ITVEUx39nn/O7Y5qR8f05wtCUUr6ZIS++8pEnkZInPImneaCQ5METNdOkeFBKUhMPRIkHKfEuUZSUlGlKPN2TrgfncpvmnntnmlEyq1Z7t89/rf9a6+y99oZxGZf/XeIq61EdtgKXgdXA0xrYAvBjOIF1AI9zvjcC74BSpndrJPkBWDScTF8Aa4E3wDlgHbASaANmVqlcCnwHvgDvgVfAJ+AikAAvgfVZwLnSVZHZaOuKoQi3ZOMi4NkYkpe1p4J7A8BpYAD49hfIy/oqG0+hLomiKP2L5L+1ubn5115S+3OAn4EnwBlgMzCjyt6ZAnQCJ4A7wOs88iRJHvw50HoujuPBoCKwHWiosy8MdfZnAdcHk8dxXFJ3VQbQlCTJvRBCGdRbD4M6uc5glpY3eAihpN5S5w12diSEcCCEcKUO4ljdr15T76ur1FDDLIQQ3qv71EdDOe3Kxj3leRXyk+pxdWnFWod6Wt2bY3de3aSuUHcPBVimHs7mK9WrmeOF6lR1o9qnzskh2ar2qm1qizpfXaPeVGdlmGN5pb09qMxz1Xb1kLqgzn1RyH7JUXW52lr5e/Kqi9qpto7V1atuUzfnARrV7jEib1T76gG2qxdGmXyiekkt1GswPTtek0aBfJp6YySGBfWg2tPQ0FAYgf1stUfdmdcjarbYJEniKIq6gY/Aw+zWHAC+p2labGpqiorFYgGYCEzN7oQdQClN07O1/EfDyGgC0ALMBdYAi4FyK+4H3gLPsxfR1zRNi+NP7nH5J+QntnXe5B5mpfQAAAAASUVORK5CYII=">
 
 <!-- CSS -->
-<link rel="stylesheet" type="text/css" href="nimdoc.out.css?v=2.2.8">
+<link rel="stylesheet" type="text/css" href="nimdoc.out.css?v=2.2.10">
 
 <!-- JS -->
-<script type="text/javascript" src="dochack.js?v=2.2.8"></script>
+<script type="text/javascript" src="dochack.js?v=2.2.10"></script>
 </head>
 <body>
   <div class="document" id="documentId">
+    <input type="checkbox" id="nav-toggle" hidden>
+    <label for="nav-toggle" id="nav-burger">&#9776;</label>
+    <label for="nav-toggle" id="nav-overlay"></label>
     <div class="container">
-      <h1 class="title">src/netty</h1>
+      <h1 class="title">netty</h1>
       <div class="row">
   <div class="three columns">
     <div class="theme-select-wrapper">
@@ -171,7 +174,7 @@
   <h1><a class="toc-backref" href="#7">Types</a></h1>
   <dl class="item">
     <div id="Address">
-  <dt><pre><a href="netty.html#Address"><span class="Identifier">Address</span></a> <span class="Other">=</span> <span class="Keyword">object</span>
+  <dt><pre><a href="#Address"><span class="Identifier">Address</span></a> <span class="Other">=</span> <span class="Keyword">object</span>
   <span class="Identifier">host</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">string</span>
   <span class="Identifier">port</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">Port</span></pre></dt>
   <dd>
@@ -183,11 +186,11 @@
   </dd>
 </div>
 <div id="Connection">
-  <dt><pre><a href="netty.html#Connection"><span class="Identifier">Connection</span></a> <span class="Other">=</span> <span class="Keyword">ref</span> <span class="Keyword">object</span>
+  <dt><pre><a href="#Connection"><span class="Identifier">Connection</span></a> <span class="Other">=</span> <span class="Keyword">ref</span> <span class="Keyword">object</span>
   <span class="Identifier">id</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">uint32</span>
   <span class="Identifier">reactorId</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">uint32</span>
-  <span class="Identifier">address</span><span class="Operator">*</span><span class="Other">:</span> <a href="netty.html#Address"><span class="Identifier">Address</span></a>
-  <span class="Identifier">stats</span><span class="Operator">*</span><span class="Other">:</span> <a href="netty.html#ConnectionStats"><span class="Identifier">ConnectionStats</span></a>
+  <span class="Identifier">address</span><span class="Operator">*</span><span class="Other">:</span> <a href="#Address"><span class="Identifier">Address</span></a>
+  <span class="Identifier">stats</span><span class="Operator">*</span><span class="Other">:</span> <a href="#ConnectionStats"><span class="Identifier">ConnectionStats</span></a>
   <span class="Identifier">lastActiveTime</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">float64</span></pre></dt>
   <dd>
     
@@ -198,7 +201,7 @@
   </dd>
 </div>
 <div id="ConnectionStats">
-  <dt><pre><a href="netty.html#ConnectionStats"><span class="Identifier">ConnectionStats</span></a> <span class="Other">=</span> <span class="Keyword">object</span>
+  <dt><pre><a href="#ConnectionStats"><span class="Identifier">ConnectionStats</span></a> <span class="Other">=</span> <span class="Keyword">object</span>
   <span class="Identifier">inFlight</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">int</span>             <span class="Comment">## How many bytes are currently in flight.</span>
   <span class="Identifier">inQueue</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">int</span>              <span class="Comment">## How many bytes are currently waiting to be sent.</span>
   <span class="Identifier">saturated</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">bool</span>           <span class="Comment">## If this conn cannot send until it receives acks.</span>
@@ -213,7 +216,7 @@
   </dd>
 </div>
 <div id="DebugConfig">
-  <dt><pre><a href="netty.html#DebugConfig"><span class="Identifier">DebugConfig</span></a> <span class="Other">=</span> <span class="Keyword">object</span>
+  <dt><pre><a href="#DebugConfig"><span class="Identifier">DebugConfig</span></a> <span class="Other">=</span> <span class="Keyword">object</span>
   <span class="Identifier">tickTime</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">float64</span>         <span class="Comment">## Override the time processed by calls to tick.</span>
   <span class="Identifier">dropRate</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">float32</span>         <span class="Comment">## [0, 1] % simulated drop rate.</span>
   <span class="Identifier">readLatency</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">float32</span>      <span class="Comment">## Min simulated read latency in seconds.</span>
@@ -228,8 +231,8 @@
   </dd>
 </div>
 <div id="Message">
-  <dt><pre><a href="netty.html#Message"><span class="Identifier">Message</span></a> <span class="Other">=</span> <span class="Keyword">object</span>
-  <span class="Identifier">conn</span><span class="Operator">*</span><span class="Other">:</span> <a href="netty.html#Connection"><span class="Identifier">Connection</span></a>
+  <dt><pre><a href="#Message"><span class="Identifier">Message</span></a> <span class="Other">=</span> <span class="Keyword">object</span>
+  <span class="Identifier">conn</span><span class="Operator">*</span><span class="Other">:</span> <a href="#Connection"><span class="Identifier">Connection</span></a>
   <span class="Identifier">sequenceNum</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">uint32</span>
   <span class="Identifier">data</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">string</span></pre></dt>
   <dd>
@@ -241,15 +244,15 @@
   </dd>
 </div>
 <div id="Reactor">
-  <dt><pre><a href="netty.html#Reactor"><span class="Identifier">Reactor</span></a> <span class="Other">=</span> <span class="Keyword">ref</span> <span class="Keyword">object</span>
+  <dt><pre><a href="#Reactor"><span class="Identifier">Reactor</span></a> <span class="Other">=</span> <span class="Keyword">ref</span> <span class="Keyword">object</span>
   <span class="Identifier">id</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">uint32</span>
-  <span class="Identifier">address</span><span class="Operator">*</span><span class="Other">:</span> <a href="netty.html#Address"><span class="Identifier">Address</span></a>
+  <span class="Identifier">address</span><span class="Operator">*</span><span class="Other">:</span> <a href="#Address"><span class="Identifier">Address</span></a>
   <span class="Identifier">maxInFlight</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">int</span>          <span class="Comment">## Max bytes in-flight on the socket.</span>
-  <span class="Identifier">debug</span><span class="Operator">*</span><span class="Other">:</span> <a href="netty.html#DebugConfig"><span class="Identifier">DebugConfig</span></a>
-  <span class="Identifier">connections</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">seq</span><span class="Other">[</span><a href="netty.html#Connection"><span class="Identifier">Connection</span></a><span class="Other">]</span>
-  <span class="Identifier">newConnections</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">seq</span><span class="Other">[</span><a href="netty.html#Connection"><span class="Identifier">Connection</span></a><span class="Other">]</span> <span class="Comment">## New connections since last tick.</span>
-  <span class="Identifier">deadConnections</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">seq</span><span class="Other">[</span><a href="netty.html#Connection"><span class="Identifier">Connection</span></a><span class="Other">]</span> <span class="Comment">## Dead connections since last tick.</span>
-  <span class="Identifier">messages</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">seq</span><span class="Other">[</span><a href="netty.html#Message"><span class="Identifier">Message</span></a><span class="Other">]</span></pre></dt>
+  <span class="Identifier">debug</span><span class="Operator">*</span><span class="Other">:</span> <a href="#DebugConfig"><span class="Identifier">DebugConfig</span></a>
+  <span class="Identifier">connections</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">seq</span><span class="Other">[</span><a href="#Connection"><span class="Identifier">Connection</span></a><span class="Other">]</span>
+  <span class="Identifier">newConnections</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">seq</span><span class="Other">[</span><a href="#Connection"><span class="Identifier">Connection</span></a><span class="Other">]</span> <span class="Comment">## New connections since last tick.</span>
+  <span class="Identifier">deadConnections</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">seq</span><span class="Other">[</span><a href="#Connection"><span class="Identifier">Connection</span></a><span class="Other">]</span> <span class="Comment">## Dead connections since last tick.</span>
+  <span class="Identifier">messages</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">seq</span><span class="Other">[</span><a href="#Message"><span class="Identifier">Message</span></a><span class="Other">]</span></pre></dt>
   <dd>
     
     Main networking system that can open or receive connections.
@@ -266,7 +269,7 @@
   <dl class="item">
     <div id="$-procs-all">
   <div id="$,Address">
-  <dt><pre><span class="Keyword">func</span> <a href="#%24%2CAddress"><span class="Identifier">`$`</span></a><span class="Other">(</span><span class="Identifier">address</span><span class="Other">:</span> <a href="netty.html#Address"><span class="Identifier">Address</span></a><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">string</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+  <dt><pre><span class="Keyword">func</span> <a href="#%24%2CAddress"><span class="Identifier">`$`</span></a><span class="Other">(</span><span class="Identifier">address</span><span class="Other">:</span> <a href="#Address"><span class="Identifier">Address</span></a><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">string</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
   <dd>
     
     Address to string.
@@ -276,7 +279,7 @@
   </dd>
 </div>
 <div id="$,Connection">
-  <dt><pre><span class="Keyword">func</span> <a href="#%24%2CConnection"><span class="Identifier">`$`</span></a><span class="Other">(</span><span class="Identifier">conn</span><span class="Other">:</span> <a href="netty.html#Connection"><span class="Identifier">Connection</span></a><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">string</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+  <dt><pre><span class="Keyword">func</span> <a href="#%24%2CConnection"><span class="Identifier">`$`</span></a><span class="Other">(</span><span class="Identifier">conn</span><span class="Other">:</span> <a href="#Connection"><span class="Identifier">Connection</span></a><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">string</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
   <dd>
     
     Connection to string.
@@ -286,7 +289,7 @@
   </dd>
 </div>
 <div id="$,Message">
-  <dt><pre><span class="Keyword">func</span> <a href="#%24%2CMessage"><span class="Identifier">`$`</span></a><span class="Other">(</span><span class="Identifier">msg</span><span class="Other">:</span> <a href="netty.html#Message"><span class="Identifier">Message</span></a><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">string</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+  <dt><pre><span class="Keyword">func</span> <a href="#%24%2CMessage"><span class="Identifier">`$`</span></a><span class="Other">(</span><span class="Identifier">msg</span><span class="Other">:</span> <a href="#Message"><span class="Identifier">Message</span></a><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">string</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
   <dd>
     
     Message to string.
@@ -309,7 +312,7 @@
 </div>
 <div id="connect-procs-all">
   <div id="connect,Reactor,Address">
-  <dt><pre><span class="Keyword">func</span> <a href="#connect%2CReactor%2CAddress"><span class="Identifier">connect</span></a><span class="Other">(</span><span class="Identifier">reactor</span><span class="Other">:</span> <a href="netty.html#Reactor"><span class="Identifier">Reactor</span></a><span class="Other">;</span> <span class="Identifier">address</span><span class="Other">:</span> <a href="netty.html#Address"><span class="Identifier">Address</span></a><span class="Other">)</span><span class="Other">:</span> <a href="netty.html#Connection"><span class="Identifier">Connection</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span>
+  <dt><pre><span class="Keyword">func</span> <a href="#connect%2CReactor%2CAddress"><span class="Identifier">connect</span></a><span class="Other">(</span><span class="Identifier">reactor</span><span class="Other">:</span> <a href="#Reactor"><span class="Identifier">Reactor</span></a><span class="Other">;</span> <span class="Identifier">address</span><span class="Other">:</span> <a href="#Address"><span class="Identifier">Address</span></a><span class="Other">)</span><span class="Other">:</span> <a href="#Connection"><span class="Identifier">Connection</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span>
     <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
   <dd>
     
@@ -320,7 +323,7 @@
   </dd>
 </div>
 <div id="connect,Reactor,string,int">
-  <dt><pre><span class="Keyword">func</span> <a href="#connect%2CReactor%2Cstring%2Cint"><span class="Identifier">connect</span></a><span class="Other">(</span><span class="Identifier">reactor</span><span class="Other">:</span> <a href="netty.html#Reactor"><span class="Identifier">Reactor</span></a><span class="Other">;</span> <span class="Identifier">host</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">;</span> <span class="Identifier">port</span><span class="Other">:</span> <span class="Identifier">int</span><span class="Other">)</span><span class="Other">:</span> <a href="netty.html#Connection"><span class="Identifier">Connection</span></a> {.
+  <dt><pre><span class="Keyword">func</span> <a href="#connect%2CReactor%2Cstring%2Cint"><span class="Identifier">connect</span></a><span class="Other">(</span><span class="Identifier">reactor</span><span class="Other">:</span> <a href="#Reactor"><span class="Identifier">Reactor</span></a><span class="Other">;</span> <span class="Identifier">host</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">;</span> <span class="Identifier">port</span><span class="Other">:</span> <span class="Identifier">int</span><span class="Other">)</span><span class="Other">:</span> <a href="#Connection"><span class="Identifier">Connection</span></a> {.
     <span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
   <dd>
     
@@ -334,7 +337,7 @@
 </div>
 <div id="disconnect-procs-all">
   <div id="disconnect,Reactor,Connection">
-  <dt><pre><span class="Keyword">proc</span> <a href="#disconnect%2CReactor%2CConnection"><span class="Identifier">disconnect</span></a><span class="Other">(</span><span class="Identifier">reactor</span><span class="Other">:</span> <a href="netty.html#Reactor"><span class="Identifier">Reactor</span></a><span class="Other">;</span> <span class="Identifier">conn</span><span class="Other">:</span> <a href="netty.html#Connection"><span class="Identifier">Connection</span></a><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">OSError</span><span class="Other">]</span><span class="Other">,</span>
+  <dt><pre><span class="Keyword">proc</span> <a href="#disconnect%2CReactor%2CConnection"><span class="Identifier">disconnect</span></a><span class="Other">(</span><span class="Identifier">reactor</span><span class="Other">:</span> <a href="#Reactor"><span class="Identifier">Reactor</span></a><span class="Other">;</span> <span class="Identifier">conn</span><span class="Other">:</span> <a href="#Connection"><span class="Identifier">Connection</span></a><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">OSError</span><span class="Other">]</span><span class="Other">,</span>
     <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">WriteIOEffect</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
   <dd>
     
@@ -348,7 +351,7 @@
 </div>
 <div id="hash-procs-all">
   <div id="hash,Address">
-  <dt><pre><span class="Keyword">func</span> <a href="#hash%2CAddress"><span class="Identifier">hash</span></a><span class="Other">(</span><span class="Identifier">x</span><span class="Other">:</span> <a href="netty.html#Address"><span class="Identifier">Address</span></a><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">Hash</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+  <dt><pre><span class="Keyword">func</span> <a href="#hash%2CAddress"><span class="Identifier">hash</span></a><span class="Other">(</span><span class="Identifier">x</span><span class="Other">:</span> <a href="#Address"><span class="Identifier">Address</span></a><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">Hash</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
   <dd>
     
     Computes a hash for the address.
@@ -361,7 +364,7 @@
 </div>
 <div id="initAddress-procs-all">
   <div id="initAddress,string,int">
-  <dt><pre><span class="Keyword">func</span> <a href="#initAddress%2Cstring%2Cint"><span class="Identifier">initAddress</span></a><span class="Other">(</span><span class="Identifier">host</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">;</span> <span class="Identifier">port</span><span class="Other">:</span> <span class="Identifier">int</span><span class="Other">)</span><span class="Other">:</span> <a href="netty.html#Address"><span class="Identifier">Address</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span>
+  <dt><pre><span class="Keyword">func</span> <a href="#initAddress%2Cstring%2Cint"><span class="Identifier">initAddress</span></a><span class="Other">(</span><span class="Identifier">host</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">;</span> <span class="Identifier">port</span><span class="Other">:</span> <span class="Identifier">int</span><span class="Other">)</span><span class="Other">:</span> <a href="#Address"><span class="Identifier">Address</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span>
     <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
   <dd>
     
@@ -375,7 +378,7 @@
 </div>
 <div id="newReactor-procs-all">
   <div id="newReactor">
-  <dt><pre><span class="Keyword">proc</span> <a href="#newReactor"><span class="Identifier">newReactor</span></a><span class="Other">(</span><span class="Other">)</span><span class="Other">:</span> <a href="netty.html#Reactor"><span class="Identifier">Reactor</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">OSError</span><span class="Other">,</span> <span class="Identifier">ValueError</span><span class="Other">,</span> <span class="Identifier">Exception</span><span class="Other">]</span><span class="Other">,</span>
+  <dt><pre><span class="Keyword">proc</span> <a href="#newReactor"><span class="Identifier">newReactor</span></a><span class="Other">(</span><span class="Other">)</span><span class="Other">:</span> <a href="#Reactor"><span class="Identifier">Reactor</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">OSError</span><span class="Other">,</span> <span class="Identifier">ValueError</span><span class="Other">,</span> <span class="Identifier">Exception</span><span class="Other">]</span><span class="Other">,</span>
                              <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">TimeEffect</span><span class="Other">,</span> <span class="Identifier">ReadIOEffect</span><span class="Other">,</span> <span class="Identifier">WriteIOEffect</span><span class="Other">]</span><span class="Other">,</span>
                              <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
   <dd>
@@ -387,7 +390,7 @@
   </dd>
 </div>
 <div id="newReactor,Address">
-  <dt><pre><span class="Keyword">proc</span> <a href="#newReactor%2CAddress"><span class="Identifier">newReactor</span></a><span class="Other">(</span><span class="Identifier">address</span><span class="Other">:</span> <a href="netty.html#Address"><span class="Identifier">Address</span></a><span class="Other">)</span><span class="Other">:</span> <a href="netty.html#Reactor"><span class="Identifier">Reactor</span></a> {.
+  <dt><pre><span class="Keyword">proc</span> <a href="#newReactor%2CAddress"><span class="Identifier">newReactor</span></a><span class="Other">(</span><span class="Identifier">address</span><span class="Other">:</span> <a href="#Address"><span class="Identifier">Address</span></a><span class="Other">)</span><span class="Other">:</span> <a href="#Reactor"><span class="Identifier">Reactor</span></a> {.
     <span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">OSError</span><span class="Other">,</span> <span class="Identifier">ValueError</span><span class="Other">,</span> <span class="Identifier">Exception</span><span class="Other">]</span><span class="Other">,</span>
     <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">TimeEffect</span><span class="Other">,</span> <span class="Identifier">ReadIOEffect</span><span class="Other">,</span> <span class="Identifier">WriteIOEffect</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
   <dd>
@@ -399,7 +402,7 @@
   </dd>
 </div>
 <div id="newReactor,string,int">
-  <dt><pre><span class="Keyword">proc</span> <a href="#newReactor%2Cstring%2Cint"><span class="Identifier">newReactor</span></a><span class="Other">(</span><span class="Identifier">host</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">;</span> <span class="Identifier">port</span><span class="Other">:</span> <span class="Identifier">int</span><span class="Other">)</span><span class="Other">:</span> <a href="netty.html#Reactor"><span class="Identifier">Reactor</span></a> {.
+  <dt><pre><span class="Keyword">proc</span> <a href="#newReactor%2Cstring%2Cint"><span class="Identifier">newReactor</span></a><span class="Other">(</span><span class="Identifier">host</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">;</span> <span class="Identifier">port</span><span class="Other">:</span> <span class="Identifier">int</span><span class="Other">)</span><span class="Other">:</span> <a href="#Reactor"><span class="Identifier">Reactor</span></a> {.
     <span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">OSError</span><span class="Other">,</span> <span class="Identifier">ValueError</span><span class="Other">,</span> <span class="Identifier">Exception</span><span class="Other">]</span><span class="Other">,</span>
     <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">TimeEffect</span><span class="Other">,</span> <span class="Identifier">ReadIOEffect</span><span class="Other">,</span> <span class="Identifier">WriteIOEffect</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
   <dd>
@@ -414,7 +417,7 @@
 </div>
 <div id="punchThrough-procs-all">
   <div id="punchThrough,Reactor,Address">
-  <dt><pre><span class="Keyword">proc</span> <a href="#punchThrough%2CReactor%2CAddress"><span class="Identifier">punchThrough</span></a><span class="Other">(</span><span class="Identifier">reactor</span><span class="Other">:</span> <a href="netty.html#Reactor"><span class="Identifier">Reactor</span></a><span class="Other">;</span> <span class="Identifier">address</span><span class="Other">:</span> <a href="netty.html#Address"><span class="Identifier">Address</span></a><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">OSError</span><span class="Other">]</span><span class="Other">,</span>
+  <dt><pre><span class="Keyword">proc</span> <a href="#punchThrough%2CReactor%2CAddress"><span class="Identifier">punchThrough</span></a><span class="Other">(</span><span class="Identifier">reactor</span><span class="Other">:</span> <a href="#Reactor"><span class="Identifier">Reactor</span></a><span class="Other">;</span> <span class="Identifier">address</span><span class="Other">:</span> <a href="#Address"><span class="Identifier">Address</span></a><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">OSError</span><span class="Other">]</span><span class="Other">,</span>
     <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">WriteIOEffect</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
   <dd>
     
@@ -425,7 +428,7 @@
   </dd>
 </div>
 <div id="punchThrough,Reactor,string,int">
-  <dt><pre><span class="Keyword">proc</span> <a href="#punchThrough%2CReactor%2Cstring%2Cint"><span class="Identifier">punchThrough</span></a><span class="Other">(</span><span class="Identifier">reactor</span><span class="Other">:</span> <a href="netty.html#Reactor"><span class="Identifier">Reactor</span></a><span class="Other">;</span> <span class="Identifier">host</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">;</span> <span class="Identifier">port</span><span class="Other">:</span> <span class="Identifier">int</span><span class="Other">)</span> {.
+  <dt><pre><span class="Keyword">proc</span> <a href="#punchThrough%2CReactor%2Cstring%2Cint"><span class="Identifier">punchThrough</span></a><span class="Other">(</span><span class="Identifier">reactor</span><span class="Other">:</span> <a href="#Reactor"><span class="Identifier">Reactor</span></a><span class="Other">;</span> <span class="Identifier">host</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">;</span> <span class="Identifier">port</span><span class="Other">:</span> <span class="Identifier">int</span><span class="Other">)</span> {.
     <span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">OSError</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">WriteIOEffect</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
   <dd>
     
@@ -439,7 +442,7 @@
 </div>
 <div id="send-procs-all">
   <div id="send,Reactor,Connection,string">
-  <dt><pre><span class="Keyword">func</span> <a href="#send%2CReactor%2CConnection%2Cstring"><span class="Identifier">send</span></a><span class="Other">(</span><span class="Identifier">reactor</span><span class="Other">:</span> <a href="netty.html#Reactor"><span class="Identifier">Reactor</span></a><span class="Other">;</span> <span class="Identifier">conn</span><span class="Other">:</span> <a href="netty.html#Connection"><span class="Identifier">Connection</span></a><span class="Other">;</span> <span class="Identifier">data</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span>
+  <dt><pre><span class="Keyword">func</span> <a href="#send%2CReactor%2CConnection%2Cstring"><span class="Identifier">send</span></a><span class="Other">(</span><span class="Identifier">reactor</span><span class="Other">:</span> <a href="#Reactor"><span class="Identifier">Reactor</span></a><span class="Other">;</span> <span class="Identifier">conn</span><span class="Other">:</span> <a href="#Connection"><span class="Identifier">Connection</span></a><span class="Other">;</span> <span class="Identifier">data</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span>
     <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
   <dd>
     
@@ -453,7 +456,7 @@
 </div>
 <div id="tick-procs-all">
   <div id="tick,Reactor">
-  <dt><pre><span class="Keyword">proc</span> <a href="#tick%2CReactor"><span class="Identifier">tick</span></a><span class="Other">(</span><span class="Identifier">reactor</span><span class="Other">:</span> <a href="netty.html#Reactor"><span class="Identifier">Reactor</span></a><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span>
+  <dt><pre><span class="Keyword">proc</span> <a href="#tick%2CReactor"><span class="Identifier">tick</span></a><span class="Other">(</span><span class="Identifier">reactor</span><span class="Other">:</span> <a href="#Reactor"><span class="Identifier">Reactor</span></a><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span>
                               <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">TimeEffect</span><span class="Other">,</span> <span class="Identifier">WriteIOEffect</span><span class="Other">,</span> <span class="Identifier">ReadIOEffect</span><span class="Other">]</span><span class="Other">,</span>
                               <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
   <dd>
@@ -482,7 +485,7 @@
       <div class="twelve-columns footer">
         <span class="nim-sprite"></span>
         <br>
-        <small style="color: var(--hint);">Made with Nim. Generated: 2026-02-24 05:40:21 UTC</small>
+        <small style="color: var(--hint);">Made with Nim. Generated: 2026-05-25 03:49:08 UTC</small>
       </div>
     </div>
   </div>

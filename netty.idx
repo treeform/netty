@@ -1,4 +1,4 @@
-nimTitle	netty	netty.html	module src/netty		0
+nimTitle	netty	netty.html	module netty		0
 nim	Address	netty.html#Address	object Address		18
 nim	DebugConfig	netty.html#DebugConfig	object DebugConfig		23
 nim	Reactor	netty.html#Reactor	type Reactor		30
