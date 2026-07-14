@@ -326,7 +326,7 @@ proc readParts(reactor: Reactor) =
         buf, reactor.maxUdpPacket + HeaderSize, host, port
       )
     except OSError:
-      when defined(nettyMagicSleep):
+      when defined(nettyMagicSleep) and not defined(nettyBench):
         sleep(1)
       break
 
