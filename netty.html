@@ -80,16 +80,19 @@
   tickTime*: float64         ## Override the time processed by calls to tick.
   dropRate*: float32         ## [0, 1] % simulated drop rate.
   readLatency*: float32      ## Min simulated read latency in seconds.
-  sendLatency*: float32      ## Min simulated send latency in seconds.
-  maxUdpPacket*: int         ## Max size of each outgoing UDP packet in bytes.">DebugConfig</a></li>
+  sendLatency*: float32      ## Min simulated send latency in seconds.">DebugConfig</a></li>
 <li><a class="reference" href="#Message" title="Message = object
   conn*: Connection
   sequenceNum*: uint32
   data*: string">Message</a></li>
+<li><a class="reference" href="#NettyError" title="NettyError = object of CatchableError">NettyError</a></li>
 <li><a class="reference" href="#Reactor" title="Reactor = ref object
   id*: uint32
   address*: Address
   maxInFlight*: int          ## Max bytes in-flight on the socket.
+  maxConnections*: int       ## Max accepted or outbound connections.
+  maxRecvParts*: int         ## Max buffered receive parts per connection.
+  maxUdpPacket*: int         ## Max payload bytes per outgoing UDP packet.
   debug*: DebugConfig
   connections*: seq[Connection]
   newConnections*: seq[Connection] ## New connections since last tick.
@@ -108,6 +111,10 @@
 <li><a class="reference" href="#%24%2CConnection" title="`$`(conn: Connection): string">`$`(conn: Connection): string</a></li>
 <li><a class="reference" href="#%24%2CMessage" title="`$`(msg: Message): string">`$`(msg: Message): string</a></li>
 <li><a class="reference" href="#%24%2CPart" title="`$`(part: Part): string">`$`(part: Part): string</a></li>
+
+</ul>
+<ul class="simple nested-toc-section">close
+  <li><a class="reference" href="#close%2CReactor" title="close(reactor: Reactor)">close(reactor: Reactor)</a></li>
 
 </ul>
 <ul class="simple nested-toc-section">connect
@@ -180,8 +187,8 @@
   <dd>
     
     A host/port of the client.
-    <a href="https://github.com/treeform/netty/tree/master/src/netty.nim#L18" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
-<a href="https://github.com/treeform/netty/edit/devel/src/netty.nim#L18" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
+    <a href="https://github.com/treeform/netty/tree/master/src/netty.nim#L28" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
+<a href="https://github.com/treeform/netty/edit/devel/src/netty.nim#L28" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
 
   </dd>
 </div>
@@ -195,8 +202,8 @@
   <dd>
     
     
-    <a href="https://github.com/treeform/netty/tree/master/src/netty.nim#L52" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
-<a href="https://github.com/treeform/netty/edit/devel/src/netty.nim#L52" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
+    <a href="https://github.com/treeform/netty/tree/master/src/netty.nim#L86" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
+<a href="https://github.com/treeform/netty/edit/devel/src/netty.nim#L86" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
 
   </dd>
 </div>
@@ -210,8 +217,8 @@
   <dd>
     
     
-    <a href="https://github.com/treeform/netty/tree/master/src/netty.nim#L45" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
-<a href="https://github.com/treeform/netty/edit/devel/src/netty.nim#L45" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
+    <a href="https://github.com/treeform/netty/tree/master/src/netty.nim#L79" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
+<a href="https://github.com/treeform/netty/edit/devel/src/netty.nim#L79" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
 
   </dd>
 </div>
@@ -220,13 +227,12 @@
   <span class="Identifier">tickTime</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">float64</span>         <span class="Comment">## Override the time processed by calls to tick.</span>
   <span class="Identifier">dropRate</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">float32</span>         <span class="Comment">## [0, 1] % simulated drop rate.</span>
   <span class="Identifier">readLatency</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">float32</span>      <span class="Comment">## Min simulated read latency in seconds.</span>
-  <span class="Identifier">sendLatency</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">float32</span>      <span class="Comment">## Min simulated send latency in seconds.</span>
-  <span class="Identifier">maxUdpPacket</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">int</span>         <span class="Comment">## Max size of each outgoing UDP packet in bytes.</span></pre></dt>
+  <span class="Identifier">sendLatency</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">float32</span>      <span class="Comment">## Min simulated send latency in seconds.</span></pre></dt>
   <dd>
     
     
-    <a href="https://github.com/treeform/netty/tree/master/src/netty.nim#L23" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
-<a href="https://github.com/treeform/netty/edit/devel/src/netty.nim#L23" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
+    <a href="https://github.com/treeform/netty/tree/master/src/netty.nim#L33" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
+<a href="https://github.com/treeform/netty/edit/devel/src/netty.nim#L33" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
 
   </dd>
 </div>
@@ -238,8 +244,18 @@
   <dd>
     
     
-    <a href="https://github.com/treeform/netty/tree/master/src/netty.nim#L78" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
-<a href="https://github.com/treeform/netty/edit/devel/src/netty.nim#L78" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
+    <a href="https://github.com/treeform/netty/tree/master/src/netty.nim#L113" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
+<a href="https://github.com/treeform/netty/edit/devel/src/netty.nim#L113" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
+
+  </dd>
+</div>
+<div id="NettyError">
+  <dt><pre><a href="#NettyError"><span class="Identifier">NettyError</span></a> <span class="Other">=</span> <span class="Keyword">object</span> <span class="Keyword">of</span> <span class="Identifier">CatchableError</span></pre></dt>
+  <dd>
+    
+    
+    <a href="https://github.com/treeform/netty/tree/master/src/netty.nim#L26" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
+<a href="https://github.com/treeform/netty/edit/devel/src/netty.nim#L26" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
 
   </dd>
 </div>
@@ -248,6 +264,9 @@
   <span class="Identifier">id</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">uint32</span>
   <span class="Identifier">address</span><span class="Operator">*</span><span class="Other">:</span> <a href="#Address"><span class="Identifier">Address</span></a>
   <span class="Identifier">maxInFlight</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">int</span>          <span class="Comment">## Max bytes in-flight on the socket.</span>
+  <span class="Identifier">maxConnections</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">int</span>       <span class="Comment">## Max accepted or outbound connections.</span>
+  <span class="Identifier">maxRecvParts</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">int</span>         <span class="Comment">## Max buffered receive parts per connection.</span>
+  <span class="Identifier">maxUdpPacket</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">int</span>         <span class="Comment">## Max payload bytes per outgoing UDP packet.</span>
   <span class="Identifier">debug</span><span class="Operator">*</span><span class="Other">:</span> <a href="#DebugConfig"><span class="Identifier">DebugConfig</span></a>
   <span class="Identifier">connections</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">seq</span><span class="Other">[</span><a href="#Connection"><span class="Identifier">Connection</span></a><span class="Other">]</span>
   <span class="Identifier">newConnections</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">seq</span><span class="Other">[</span><a href="#Connection"><span class="Identifier">Connection</span></a><span class="Other">]</span> <span class="Comment">## New connections since last tick.</span>
@@ -256,8 +275,8 @@
   <dd>
     
     Main networking system that can open or receive connections.
-    <a href="https://github.com/treeform/netty/tree/master/src/netty.nim#L30" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
-<a href="https://github.com/treeform/netty/edit/devel/src/netty.nim#L30" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
+    <a href="https://github.com/treeform/netty/tree/master/src/netty.nim#L55" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
+<a href="https://github.com/treeform/netty/edit/devel/src/netty.nim#L55" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
 
   </dd>
 </div>
@@ -273,8 +292,8 @@
   <dd>
     
     Address to string.
-    <a href="https://github.com/treeform/netty/tree/master/src/netty.nim#L87" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
-<a href="https://github.com/treeform/netty/edit/devel/src/netty.nim#L87" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
+    <a href="https://github.com/treeform/netty/tree/master/src/netty.nim#L122" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
+<a href="https://github.com/treeform/netty/edit/devel/src/netty.nim#L122" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
 
   </dd>
 </div>
@@ -283,8 +302,8 @@
   <dd>
     
     Connection to string.
-    <a href="https://github.com/treeform/netty/tree/master/src/netty.nim#L91" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
-<a href="https://github.com/treeform/netty/edit/devel/src/netty.nim#L91" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
+    <a href="https://github.com/treeform/netty/tree/master/src/netty.nim#L126" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
+<a href="https://github.com/treeform/netty/edit/devel/src/netty.nim#L126" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
 
   </dd>
 </div>
@@ -293,8 +312,8 @@
   <dd>
     
     Message to string.
-    <a href="https://github.com/treeform/netty/tree/master/src/netty.nim#L99" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
-<a href="https://github.com/treeform/netty/edit/devel/src/netty.nim#L99" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
+    <a href="https://github.com/treeform/netty/tree/master/src/netty.nim#L134" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
+<a href="https://github.com/treeform/netty/edit/devel/src/netty.nim#L134" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
 
   </dd>
 </div>
@@ -303,8 +322,23 @@
   <dd>
     
     Part to string.
-    <a href="https://github.com/treeform/netty/tree/master/src/netty.nim#L95" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
-<a href="https://github.com/treeform/netty/edit/devel/src/netty.nim#L95" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
+    <a href="https://github.com/treeform/netty/tree/master/src/netty.nim#L130" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
+<a href="https://github.com/treeform/netty/edit/devel/src/netty.nim#L130" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
+
+  </dd>
+</div>
+
+</div>
+<div id="close-procs-all">
+  <div id="close,Reactor">
+  <dt><pre><span class="Keyword">proc</span> <a href="#close%2CReactor"><span class="Identifier">close</span></a><span class="Other">(</span><span class="Identifier">reactor</span><span class="Other">:</span> <a href="#Reactor"><span class="Identifier">Reactor</span></a><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">LibraryError</span><span class="Other">,</span> <span class="Identifier">Exception</span><span class="Other">,</span> <span class="Identifier">OSError</span><span class="Other">,</span>
+                                        <span class="Identifier">SslError</span><span class="Other">]</span><span class="Other">,</span>
+                               <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">WriteIOEffect</span><span class="Other">,</span> <span class="Identifier">RootEffect</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+  <dd>
+    
+    Closes the UDP socket and clears local connection state.
+    <a href="https://github.com/treeform/netty/tree/master/src/netty.nim#L690" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
+<a href="https://github.com/treeform/netty/edit/devel/src/netty.nim#L690" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
 
   </dd>
 </div>
@@ -312,24 +346,24 @@
 </div>
 <div id="connect-procs-all">
   <div id="connect,Reactor,Address">
-  <dt><pre><span class="Keyword">func</span> <a href="#connect%2CReactor%2CAddress"><span class="Identifier">connect</span></a><span class="Other">(</span><span class="Identifier">reactor</span><span class="Other">:</span> <a href="#Reactor"><span class="Identifier">Reactor</span></a><span class="Other">;</span> <span class="Identifier">address</span><span class="Other">:</span> <a href="#Address"><span class="Identifier">Address</span></a><span class="Other">)</span><span class="Other">:</span> <a href="#Connection"><span class="Identifier">Connection</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span>
-    <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+  <dt><pre><span class="Keyword">func</span> <a href="#connect%2CReactor%2CAddress"><span class="Identifier">connect</span></a><span class="Other">(</span><span class="Identifier">reactor</span><span class="Other">:</span> <a href="#Reactor"><span class="Identifier">Reactor</span></a><span class="Other">;</span> <span class="Identifier">address</span><span class="Other">:</span> <a href="#Address"><span class="Identifier">Address</span></a><span class="Other">)</span><span class="Other">:</span> <a href="#Connection"><span class="Identifier">Connection</span></a> {.
+    <span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">NettyError</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
   <dd>
     
     Starts a new connection to an address.
-    <a href="https://github.com/treeform/netty/tree/master/src/netty.nim#L406" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
-<a href="https://github.com/treeform/netty/edit/devel/src/netty.nim#L406" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
+    <a href="https://github.com/treeform/netty/tree/master/src/netty.nim#L645" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
+<a href="https://github.com/treeform/netty/edit/devel/src/netty.nim#L645" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
 
   </dd>
 </div>
 <div id="connect,Reactor,string,int">
   <dt><pre><span class="Keyword">func</span> <a href="#connect%2CReactor%2Cstring%2Cint"><span class="Identifier">connect</span></a><span class="Other">(</span><span class="Identifier">reactor</span><span class="Other">:</span> <a href="#Reactor"><span class="Identifier">Reactor</span></a><span class="Other">;</span> <span class="Identifier">host</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">;</span> <span class="Identifier">port</span><span class="Other">:</span> <span class="Identifier">int</span><span class="Other">)</span><span class="Other">:</span> <a href="#Connection"><span class="Identifier">Connection</span></a> {.
-    <span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+    <span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">NettyError</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
   <dd>
     
     Starts a new connection to host and port.
-    <a href="https://github.com/treeform/netty/tree/master/src/netty.nim#L414" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
-<a href="https://github.com/treeform/netty/edit/devel/src/netty.nim#L414" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
+    <a href="https://github.com/treeform/netty/tree/master/src/netty.nim#L655" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
+<a href="https://github.com/treeform/netty/edit/devel/src/netty.nim#L655" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
 
   </dd>
 </div>
@@ -337,13 +371,13 @@
 </div>
 <div id="disconnect-procs-all">
   <div id="disconnect,Reactor,Connection">
-  <dt><pre><span class="Keyword">proc</span> <a href="#disconnect%2CReactor%2CConnection"><span class="Identifier">disconnect</span></a><span class="Other">(</span><span class="Identifier">reactor</span><span class="Other">:</span> <a href="#Reactor"><span class="Identifier">Reactor</span></a><span class="Other">;</span> <span class="Identifier">conn</span><span class="Other">:</span> <a href="#Connection"><span class="Identifier">Connection</span></a><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">OSError</span><span class="Other">]</span><span class="Other">,</span>
+  <dt><pre><span class="Keyword">proc</span> <a href="#disconnect%2CReactor%2CConnection"><span class="Identifier">disconnect</span></a><span class="Other">(</span><span class="Identifier">reactor</span><span class="Other">:</span> <a href="#Reactor"><span class="Identifier">Reactor</span></a><span class="Other">;</span> <span class="Identifier">conn</span><span class="Other">:</span> <a href="#Connection"><span class="Identifier">Connection</span></a><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span>
     <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">WriteIOEffect</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
   <dd>
     
     Disconnects the connection.
-    <a href="https://github.com/treeform/netty/tree/master/src/netty.nim#L436" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
-<a href="https://github.com/treeform/netty/edit/devel/src/netty.nim#L436" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
+    <a href="https://github.com/treeform/netty/tree/master/src/netty.nim#L682" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
+<a href="https://github.com/treeform/netty/edit/devel/src/netty.nim#L682" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
 
   </dd>
 </div>
@@ -355,8 +389,8 @@
   <dd>
     
     Computes a hash for the address.
-    <a href="https://github.com/treeform/netty/tree/master/src/netty.nim#L103" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
-<a href="https://github.com/treeform/netty/edit/devel/src/netty.nim#L103" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
+    <a href="https://github.com/treeform/netty/tree/master/src/netty.nim#L138" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
+<a href="https://github.com/treeform/netty/edit/devel/src/netty.nim#L138" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
 
   </dd>
 </div>
@@ -369,8 +403,8 @@
   <dd>
     
     
-    <a href="https://github.com/treeform/netty/tree/master/src/netty.nim#L83" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
-<a href="https://github.com/treeform/netty/edit/devel/src/netty.nim#L83" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
+    <a href="https://github.com/treeform/netty/tree/master/src/netty.nim#L118" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
+<a href="https://github.com/treeform/netty/edit/devel/src/netty.nim#L118" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
 
   </dd>
 </div>
@@ -378,38 +412,39 @@
 </div>
 <div id="newReactor-procs-all">
   <div id="newReactor">
-  <dt><pre><span class="Keyword">proc</span> <a href="#newReactor"><span class="Identifier">newReactor</span></a><span class="Other">(</span><span class="Other">)</span><span class="Other">:</span> <a href="#Reactor"><span class="Identifier">Reactor</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">OSError</span><span class="Other">,</span> <span class="Identifier">ValueError</span><span class="Other">,</span> <span class="Identifier">Exception</span><span class="Other">]</span><span class="Other">,</span>
+  <dt><pre><span class="Keyword">proc</span> <a href="#newReactor"><span class="Identifier">newReactor</span></a><span class="Other">(</span><span class="Other">)</span><span class="Other">:</span> <a href="#Reactor"><span class="Identifier">Reactor</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">OSError</span><span class="Other">,</span> <span class="Identifier">ValueError</span><span class="Other">,</span> <span class="Identifier">Exception</span><span class="Other">,</span> <span class="Identifier">IOError</span><span class="Other">,</span>
+                                      <span class="Identifier">KeyError</span><span class="Other">]</span><span class="Other">,</span>
                              <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">TimeEffect</span><span class="Other">,</span> <span class="Identifier">ReadIOEffect</span><span class="Other">,</span> <span class="Identifier">WriteIOEffect</span><span class="Other">]</span><span class="Other">,</span>
                              <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
   <dd>
     
     Creates a new reactor with system chosen address.
-    <a href="https://github.com/treeform/netty/tree/master/src/netty.nim#L483" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
-<a href="https://github.com/treeform/netty/edit/devel/src/netty.nim#L483" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
+    <a href="https://github.com/treeform/netty/tree/master/src/netty.nim#L745" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
+<a href="https://github.com/treeform/netty/edit/devel/src/netty.nim#L745" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
 
   </dd>
 </div>
 <div id="newReactor,Address">
   <dt><pre><span class="Keyword">proc</span> <a href="#newReactor%2CAddress"><span class="Identifier">newReactor</span></a><span class="Other">(</span><span class="Identifier">address</span><span class="Other">:</span> <a href="#Address"><span class="Identifier">Address</span></a><span class="Other">)</span><span class="Other">:</span> <a href="#Reactor"><span class="Identifier">Reactor</span></a> {.
-    <span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">OSError</span><span class="Other">,</span> <span class="Identifier">ValueError</span><span class="Other">,</span> <span class="Identifier">Exception</span><span class="Other">]</span><span class="Other">,</span>
+    <span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">OSError</span><span class="Other">,</span> <span class="Identifier">ValueError</span><span class="Other">,</span> <span class="Identifier">Exception</span><span class="Other">,</span> <span class="Identifier">IOError</span><span class="Other">,</span> <span class="Identifier">KeyError</span><span class="Other">]</span><span class="Other">,</span>
     <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">TimeEffect</span><span class="Other">,</span> <span class="Identifier">ReadIOEffect</span><span class="Other">,</span> <span class="Identifier">WriteIOEffect</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
   <dd>
     
     Creates a new reactor with address.
-    <a href="https://github.com/treeform/netty/tree/master/src/netty.nim#L455" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
-<a href="https://github.com/treeform/netty/edit/devel/src/netty.nim#L455" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
+    <a href="https://github.com/treeform/netty/tree/master/src/netty.nim#L715" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
+<a href="https://github.com/treeform/netty/edit/devel/src/netty.nim#L715" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
 
   </dd>
 </div>
 <div id="newReactor,string,int">
   <dt><pre><span class="Keyword">proc</span> <a href="#newReactor%2Cstring%2Cint"><span class="Identifier">newReactor</span></a><span class="Other">(</span><span class="Identifier">host</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">;</span> <span class="Identifier">port</span><span class="Other">:</span> <span class="Identifier">int</span><span class="Other">)</span><span class="Other">:</span> <a href="#Reactor"><span class="Identifier">Reactor</span></a> {.
-    <span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">OSError</span><span class="Other">,</span> <span class="Identifier">ValueError</span><span class="Other">,</span> <span class="Identifier">Exception</span><span class="Other">]</span><span class="Other">,</span>
+    <span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">OSError</span><span class="Other">,</span> <span class="Identifier">ValueError</span><span class="Other">,</span> <span class="Identifier">Exception</span><span class="Other">,</span> <span class="Identifier">IOError</span><span class="Other">,</span> <span class="Identifier">KeyError</span><span class="Other">]</span><span class="Other">,</span>
     <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">TimeEffect</span><span class="Other">,</span> <span class="Identifier">ReadIOEffect</span><span class="Other">,</span> <span class="Identifier">WriteIOEffect</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
   <dd>
     
     Creates a new reactor with host and port.
-    <a href="https://github.com/treeform/netty/tree/master/src/netty.nim#L479" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
-<a href="https://github.com/treeform/netty/edit/devel/src/netty.nim#L479" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
+    <a href="https://github.com/treeform/netty/tree/master/src/netty.nim#L741" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
+<a href="https://github.com/treeform/netty/edit/devel/src/netty.nim#L741" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
 
   </dd>
 </div>
@@ -417,24 +452,24 @@
 </div>
 <div id="punchThrough-procs-all">
   <div id="punchThrough,Reactor,Address">
-  <dt><pre><span class="Keyword">proc</span> <a href="#punchThrough%2CReactor%2CAddress"><span class="Identifier">punchThrough</span></a><span class="Other">(</span><span class="Identifier">reactor</span><span class="Other">:</span> <a href="#Reactor"><span class="Identifier">Reactor</span></a><span class="Other">;</span> <span class="Identifier">address</span><span class="Other">:</span> <a href="#Address"><span class="Identifier">Address</span></a><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">OSError</span><span class="Other">]</span><span class="Other">,</span>
+  <dt><pre><span class="Keyword">proc</span> <a href="#punchThrough%2CReactor%2CAddress"><span class="Identifier">punchThrough</span></a><span class="Other">(</span><span class="Identifier">reactor</span><span class="Other">:</span> <a href="#Reactor"><span class="Identifier">Reactor</span></a><span class="Other">;</span> <span class="Identifier">address</span><span class="Other">:</span> <a href="#Address"><span class="Identifier">Address</span></a><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span>
     <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">WriteIOEffect</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
   <dd>
     
     Tries to punch through to host/port.
-    <a href="https://github.com/treeform/netty/tree/master/src/netty.nim#L446" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
-<a href="https://github.com/treeform/netty/edit/devel/src/netty.nim#L446" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
+    <a href="https://github.com/treeform/netty/tree/master/src/netty.nim#L706" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
+<a href="https://github.com/treeform/netty/edit/devel/src/netty.nim#L706" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
 
   </dd>
 </div>
 <div id="punchThrough,Reactor,string,int">
-  <dt><pre><span class="Keyword">proc</span> <a href="#punchThrough%2CReactor%2Cstring%2Cint"><span class="Identifier">punchThrough</span></a><span class="Other">(</span><span class="Identifier">reactor</span><span class="Other">:</span> <a href="#Reactor"><span class="Identifier">Reactor</span></a><span class="Other">;</span> <span class="Identifier">host</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">;</span> <span class="Identifier">port</span><span class="Other">:</span> <span class="Identifier">int</span><span class="Other">)</span> {.
-    <span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">OSError</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">WriteIOEffect</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+  <dt><pre><span class="Keyword">proc</span> <a href="#punchThrough%2CReactor%2Cstring%2Cint"><span class="Identifier">punchThrough</span></a><span class="Other">(</span><span class="Identifier">reactor</span><span class="Other">:</span> <a href="#Reactor"><span class="Identifier">Reactor</span></a><span class="Other">;</span> <span class="Identifier">host</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">;</span> <span class="Identifier">port</span><span class="Other">:</span> <span class="Identifier">int</span><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span>
+    <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">WriteIOEffect</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
   <dd>
     
     Tries to punch through to host/port.
-    <a href="https://github.com/treeform/netty/tree/master/src/netty.nim#L451" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
-<a href="https://github.com/treeform/netty/edit/devel/src/netty.nim#L451" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
+    <a href="https://github.com/treeform/netty/tree/master/src/netty.nim#L711" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
+<a href="https://github.com/treeform/netty/edit/devel/src/netty.nim#L711" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
 
   </dd>
 </div>
@@ -442,13 +477,13 @@
 </div>
 <div id="send-procs-all">
   <div id="send,Reactor,Connection,string">
-  <dt><pre><span class="Keyword">func</span> <a href="#send%2CReactor%2CConnection%2Cstring"><span class="Identifier">send</span></a><span class="Other">(</span><span class="Identifier">reactor</span><span class="Other">:</span> <a href="#Reactor"><span class="Identifier">Reactor</span></a><span class="Other">;</span> <span class="Identifier">conn</span><span class="Other">:</span> <a href="#Connection"><span class="Identifier">Connection</span></a><span class="Other">;</span> <span class="Identifier">data</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span>
-    <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+  <dt><pre><span class="Keyword">func</span> <a href="#send%2CReactor%2CConnection%2Cstring"><span class="Identifier">send</span></a><span class="Other">(</span><span class="Identifier">reactor</span><span class="Other">:</span> <a href="#Reactor"><span class="Identifier">Reactor</span></a><span class="Other">;</span> <span class="Identifier">conn</span><span class="Other">:</span> <a href="#Connection"><span class="Identifier">Connection</span></a><span class="Other">;</span> <span class="Identifier">data</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">)</span> {.
+    <span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">NettyError</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
   <dd>
     
     
-    <a href="https://github.com/treeform/netty/tree/master/src/netty.nim#L418" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
-<a href="https://github.com/treeform/netty/edit/devel/src/netty.nim#L418" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
+    <a href="https://github.com/treeform/netty/tree/master/src/netty.nim#L659" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
+<a href="https://github.com/treeform/netty/edit/devel/src/netty.nim#L659" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
 
   </dd>
 </div>
@@ -456,14 +491,14 @@
 </div>
 <div id="tick-procs-all">
   <div id="tick,Reactor">
-  <dt><pre><span class="Keyword">proc</span> <a href="#tick%2CReactor"><span class="Identifier">tick</span></a><span class="Other">(</span><span class="Identifier">reactor</span><span class="Other">:</span> <a href="#Reactor"><span class="Identifier">Reactor</span></a><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span>
+  <dt><pre><span class="Keyword">proc</span> <a href="#tick%2CReactor"><span class="Identifier">tick</span></a><span class="Other">(</span><span class="Identifier">reactor</span><span class="Other">:</span> <a href="#Reactor"><span class="Identifier">Reactor</span></a><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">Exception</span><span class="Other">,</span> <span class="Identifier">ValueError</span><span class="Other">,</span> <span class="Identifier">IOError</span><span class="Other">,</span> <span class="Identifier">KeyError</span><span class="Other">]</span><span class="Other">,</span>
                               <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">TimeEffect</span><span class="Other">,</span> <span class="Identifier">WriteIOEffect</span><span class="Other">,</span> <span class="Identifier">ReadIOEffect</span><span class="Other">]</span><span class="Other">,</span>
                               <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
   <dd>
     
     
-    <a href="https://github.com/treeform/netty/tree/master/src/netty.nim#L390" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
-<a href="https://github.com/treeform/netty/edit/devel/src/netty.nim#L390" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
+    <a href="https://github.com/treeform/netty/tree/master/src/netty.nim#L621" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
+<a href="https://github.com/treeform/netty/edit/devel/src/netty.nim#L621" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
 
   </dd>
 </div>
@@ -485,7 +520,7 @@
       <div class="twelve-columns footer">
         <span class="nim-sprite"></span>
         <br>
-        <small style="color: var(--hint);">Made with Nim. Generated: 2026-05-25 03:49:08 UTC</small>
+        <small style="color: var(--hint);">Made with Nim. Generated: 2026-07-14 20:03:54 UTC</small>
       </div>
     </div>
   </div>

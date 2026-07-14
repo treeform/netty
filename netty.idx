@@ -1,27 +1,29 @@
 nimTitle	netty	netty.html	module netty		0
-nim	Address	netty.html#Address	object Address		18
-nim	DebugConfig	netty.html#DebugConfig	object DebugConfig		23
-nim	Reactor	netty.html#Reactor	type Reactor		30
-nim	ConnectionStats	netty.html#ConnectionStats	object ConnectionStats		45
-nim	Connection	netty.html#Connection	type Connection		52
-nim	Message	netty.html#Message	object Message		78
-nim	initAddress	netty.html#initAddress,string,int	proc initAddress(host: string; port: int): Address		83
-nim	`$`	netty.html#$,Address	proc `$`(address: Address): string		87
-nim	`$`	netty.html#$,Connection	proc `$`(conn: Connection): string		91
-nim	`$`	netty.html#$,Part	proc `$`(part: Part): string		95
-nim	`$`	netty.html#$,Message	proc `$`(msg: Message): string		99
-nim	hash	netty.html#hash,Address	proc hash(x: Address): Hash		103
-nim	tick	netty.html#tick,Reactor	proc tick(reactor: Reactor)		390
-nim	connect	netty.html#connect,Reactor,Address	proc connect(reactor: Reactor; address: Address): Connection		406
-nim	connect	netty.html#connect,Reactor,string,int	proc connect(reactor: Reactor; host: string; port: int): Connection		414
-nim	send	netty.html#send,Reactor,Connection,string	proc send(reactor: Reactor; conn: Connection; data: string)		418
-nim	disconnect	netty.html#disconnect,Reactor,Connection	proc disconnect(reactor: Reactor; conn: Connection)		436
-nim	punchThrough	netty.html#punchThrough,Reactor,Address	proc punchThrough(reactor: Reactor; address: Address)		446
-nim	punchThrough	netty.html#punchThrough,Reactor,string,int	proc punchThrough(reactor: Reactor; host: string; port: int)		451
-nim	newReactor	netty.html#newReactor,Address	proc newReactor(address: Address): Reactor		455
-nim	newReactor	netty.html#newReactor,string,int	proc newReactor(host: string; port: int): Reactor		479
-nim	newReactor	netty.html#newReactor	proc newReactor(): Reactor		483
-nimgrp	newreactor	netty.html#newReactor-procs-all	proc		455
-nimgrp	$	netty.html#$-procs-all	proc		87
-nimgrp	connect	netty.html#connect-procs-all	proc		406
-nimgrp	punchthrough	netty.html#punchThrough-procs-all	proc		446
+nim	NettyError	netty.html#NettyError	object NettyError		26
+nim	Address	netty.html#Address	object Address		28
+nim	DebugConfig	netty.html#DebugConfig	object DebugConfig		33
+nim	Reactor	netty.html#Reactor	type Reactor		55
+nim	ConnectionStats	netty.html#ConnectionStats	object ConnectionStats		79
+nim	Connection	netty.html#Connection	type Connection		86
+nim	Message	netty.html#Message	object Message		113
+nim	initAddress	netty.html#initAddress,string,int	proc initAddress(host: string; port: int): Address		118
+nim	`$`	netty.html#$,Address	proc `$`(address: Address): string		122
+nim	`$`	netty.html#$,Connection	proc `$`(conn: Connection): string		126
+nim	`$`	netty.html#$,Part	proc `$`(part: Part): string		130
+nim	`$`	netty.html#$,Message	proc `$`(msg: Message): string		134
+nim	hash	netty.html#hash,Address	proc hash(x: Address): Hash		138
+nim	tick	netty.html#tick,Reactor	proc tick(reactor: Reactor)		621
+nim	connect	netty.html#connect,Reactor,Address	proc connect(reactor: Reactor; address: Address): Connection		645
+nim	connect	netty.html#connect,Reactor,string,int	proc connect(reactor: Reactor; host: string; port: int): Connection		655
+nim	send	netty.html#send,Reactor,Connection,string	proc send(reactor: Reactor; conn: Connection; data: string)		659
+nim	disconnect	netty.html#disconnect,Reactor,Connection	proc disconnect(reactor: Reactor; conn: Connection)		682
+nim	close	netty.html#close,Reactor	proc close(reactor: Reactor)		690
+nim	punchThrough	netty.html#punchThrough,Reactor,Address	proc punchThrough(reactor: Reactor; address: Address)		706
+nim	punchThrough	netty.html#punchThrough,Reactor,string,int	proc punchThrough(reactor: Reactor; host: string; port: int)		711
+nim	newReactor	netty.html#newReactor,Address	proc newReactor(address: Address): Reactor		715
+nim	newReactor	netty.html#newReactor,string,int	proc newReactor(host: string; port: int): Reactor		741
+nim	newReactor	netty.html#newReactor	proc newReactor(): Reactor		745
+nimgrp	newreactor	netty.html#newReactor-procs-all	proc		715
+nimgrp	$	netty.html#$-procs-all	proc		122
+nimgrp	connect	netty.html#connect-procs-all	proc		645
+nimgrp	punchthrough	netty.html#punchThrough-procs-all	proc		706
