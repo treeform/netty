@@ -221,8 +221,8 @@ block:
     &"stats.inFlight: {c2s.stats.inFlight}"
 
   server.tick() # receives first window, sends acks back
-
-  doAssert server.messages.len == 1, &"len: {server.messages.len}"
+  var got = server.messages.len
+  doAssert got >= 1, &"len: {got}"
 
   client.tick() # process acks; remaining parts still queued unsent
   doAssert c2s.sendParts.len > 0
@@ -234,12 +234,13 @@ block:
   while c2s.sendParts.len > 0 and guard < 100:
     client.tick()
     server.tick()
+    got += server.messages.len
     inc guard
 
   doAssert c2s.sendParts.len == 0, &"sendParts left: {c2s.sendParts.len}"
   doAssert c2s.stats.inFlight == 0, &"stats.inFlight: {c2s.stats.inFlight}"
   doAssert c2s.stats.saturated == false
-  doAssert server.messages.len >= 1
+  doAssert got == 2, &"messages got: {got}"
   doAssert c2s.stats.latencyTs.avg() > 0
   doAssert c2s.stats.throughputTs.avg() > 0
 
