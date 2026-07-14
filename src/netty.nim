@@ -1,20 +1,25 @@
-import flatty/binny, hashes, nativesockets, net, netty/timeseries, random,
-    sequtils, std/monotimes, strformat, times, os
+import
+  flatty/binny, hashes, nativesockets, net, netty/timeseries, random,
+  sequtils, std/monotimes, strformat, times, os
 
 export Port, timeseries
 
 const
-  partMagic = 0xFFDDFF33.uint32
-  ackMagic = 0xFF33FF11.uint32
-  disconnectMagic = 0xFF77FF99.uint32
-  punchMagic = 0x00000000.uint32
-  headerSize = 4 + 4 + 4 + 2 + 2
-  ackTime = 0.250     ## Seconds to wait before sending the packet again.
-  connTimeout = 10.00 ## Seconds to wait until timing-out the connection.
-  defaultMaxUdpPacket = 508 - headerSize
-  defaultMaxInFlight = 25_000
+  PartMagic = 0xFFDDFF33.uint32
+  AckMagic = 0xFF33FF11.uint32
+  DisconnectMagic = 0xFF77FF99.uint32
+  PunchMagic = 0x00000000.uint32
+  HeaderSize = 4 + 4 + 4 + 2 + 2
+  AckTime = 0.250     ## Seconds to wait before sending the packet again.
+  ConnTimeout = 10.00 ## Seconds to wait until timing-out the connection.
+  DefaultMaxUdpPacket = 508 - HeaderSize
+  DefaultMaxInFlight = 25_000
+  DefaultMaxConnections = 1000
+  DefaultMaxRecvParts = 1000
 
 type
+  NettyError* = object of CatchableError
+
   Address* = object
     ## A host/port of the client.
     host*: string
@@ -25,7 +30,6 @@ type
     dropRate*: float32    ## [0, 1] % simulated drop rate.
     readLatency*: float32 ## Min simulated read latency in seconds.
     sendLatency*: float32 ## Min simulated send latency in seconds.
-    maxUdpPacket*: int    ## Max size of each outgoing UDP packet in bytes.
 
   Reactor* = ref object
     ## Main networking system that can open or receive connections.
@@ -34,7 +38,10 @@ type
     address*: Address
     socket: Socket
     time: float64
-    maxInFlight*: int                 ## Max bytes in-flight on the socket.
+    maxInFlight*: int     ## Max bytes in-flight on the socket.
+    maxConnections*: int  ## Max accepted or outbound connections.
+    maxRecvParts*: int    ## Max buffered receive parts per connection.
+    maxUdpPacket*: int    ## Max payload bytes per outgoing UDP packet.
     debug*: DebugConfig
 
     connections*: seq[Connection]
@@ -104,8 +111,19 @@ func hash*(x: Address): Hash =
   ## Computes a hash for the address.
   hash((x.host, x.port))
 
+func seqLess(a, b: uint32): bool {.inline.} =
+  ## True if a is before b in RFC1982 serial number space.
+  cast[int32](a - b) < 0
+
 func genId(reactor: Reactor): uint32 {.inline.} =
-  reactor.r.rand(0u32..uint32.high).uint32
+  reactor.r.rand(0u32 .. uint32.high).uint32
+
+func currentTime(reactor: Reactor): float64 {.inline.} =
+  ## Prefer debug tick override when set so send() matches tick time.
+  if reactor.debug.tickTime != 0:
+    reactor.debug.tickTime
+  else:
+    reactor.time
 
 func newConnection(reactor: Reactor, address: Address): Connection =
   result = Connection()
@@ -121,6 +139,23 @@ func getConn(reactor: Reactor, connId: uint32): Connection =
     if conn.id == connId:
       return conn
 
+func updateSendStats(reactor: Reactor) =
+  ## Recount in-flight bytes after sends or acks.
+  for conn in reactor.connections:
+    var
+      inFlight: int
+      saturated: bool
+    for part in conn.sendParts:
+      if part.acked:
+        continue
+      if inFlight + part.data.len > reactor.maxInFlight:
+        saturated = true
+        break
+      if part.sentTime != 0:
+        inFlight += part.data.len
+    conn.stats.inFlight = inFlight
+    conn.stats.saturated = saturated
+
 func read(reactor: Reactor, conn: Connection): (bool, Message) =
   if conn.recvParts.len == 0:
     return
@@ -129,17 +164,21 @@ func read(reactor: Reactor, conn: Connection): (bool, Message) =
     sequenceNum = conn.recvSequenceNum
     numParts = conn.recvParts[0].numParts
 
-  if conn.recvParts.len < numParts.int:
+  if numParts == 0 or conn.recvParts.len < numParts.int:
     return
 
   var good = true
   for i in 0.uint16 ..< numParts:
-    if conn.recvParts[i].ackedTime + reactor.debug.readLatency > reactor.time:
+    if conn.recvParts[i].ackedTime + reactor.debug.readLatency >
+      reactor.time:
+      good = false
       break
 
-    if not(conn.recvParts[i].sequenceNum == sequenceNum and
+    if not(
+      conn.recvParts[i].sequenceNum == sequenceNum and
       conn.recvParts[i].numParts == numParts and
-      conn.recvParts[i].partNum == i):
+      conn.recvParts[i].partNum == i
+    ):
       good = false
       break
 
@@ -154,11 +193,12 @@ func read(reactor: Reactor, conn: Connection): (bool, Message) =
     result[1].data.add(conn.recvParts[i].data)
 
   inc conn.recvSequenceNum
-  conn.recvParts.delete(0, numParts - 1)
+  conn.recvParts.delete(0 .. numParts.int - 1)
 
 func divideAndSend(reactor: Reactor, conn: Connection, data: string) =
   ## Divides a packet into parts and gets it ready to be sent.
-  assert data.len != 0
+  if data.len == 0:
+    return
   conn.stats.inQueue += data.len
 
   var
@@ -173,16 +213,17 @@ func divideAndSend(reactor: Reactor, conn: Connection, data: string) =
     part.partNum = partNum
     inc partNum
 
-    let maxAt = min(at + reactor.debug.maxUdpPacket, data.len)
+    let maxAt = min(at + reactor.maxUdpPacket, data.len)
     part.data = data[at ..< maxAt]
     at = maxAt
     parts.add(part)
 
-  assert parts.len < high(uint16).int
+  if parts.len > high(uint16).int:
+    raise newException(NettyError, "message has too many parts")
 
   for part in parts.mitems:
     part.numParts = parts.len.uint16
-    part.queuedTime = reactor.time
+    part.queuedTime = reactor.currentTime()
 
   conn.sendParts.add(parts)
   inc conn.sendSequenceNum
@@ -194,32 +235,37 @@ proc rawSend(reactor: Reactor, address: Address, packet: string) =
       return
   try:
     reactor.socket.sendTo(address.host, address.port, packet)
-  except:
+  except OSError:
     return
 
 proc sendNeededParts(reactor: Reactor) =
   for conn in reactor.connections:
-    var
-      inFlight: int
-      saturated: bool
     for part in conn.sendParts:
-      if inFlight + part.data.len > reactor.maxInFlight:
-        saturated = true
+      if part.acked:
+        continue
+
+      if conn.stats.inFlight + part.data.len > reactor.maxInFlight:
+        conn.stats.saturated = true
         break
 
-      if part.acked or (part.sentTime + ackTime > reactor.time):
+      # Waiting for ACK / RTO; still counts as in-flight.
+      if part.sentTime != 0 and
+        part.sentTime + AckTime > reactor.time:
+        conn.stats.inFlight += part.data.len
         continue
 
       if part.queuedTime + reactor.debug.sendLatency > reactor.time:
         continue
 
-      inFlight += part.data.len
-      conn.stats.inQueue -= part.data.len
+      let firstSend = part.sentTime == 0
+      conn.stats.inFlight += part.data.len
+      if firstSend:
+        conn.stats.inQueue -= part.data.len
 
       part.sentTime = reactor.time
 
-      var packet = newStringOfCap(headerSize + part.data.len)
-      packet.addUint32(partMagic)
+      var packet = newStringOfCap(HeaderSize + part.data.len)
+      packet.addUint32(PartMagic)
       packet.addUint32(part.sequenceNum)
       packet.addUint32(part.connId)
       packet.addUint16(part.partNum)
@@ -228,8 +274,7 @@ proc sendNeededParts(reactor: Reactor) =
 
       reactor.rawSend(conn.address, packet)
 
-    conn.stats.inFlight = inFlight
-    conn.stats.saturated = saturated
+  reactor.updateSendStats()
 
 proc sendSpecial(
   reactor: Reactor, conn: Connection, part: Part, magic: uint32
@@ -237,7 +282,7 @@ proc sendSpecial(
   assert reactor.id == conn.reactorId
   assert conn.id == part.connId
 
-  var packet = newStringOfCap(headerSize)
+  var packet = newStringOfCap(HeaderSize)
   packet.addUint32(magic)
   packet.addUint32(part.sequenceNum)
   packet.addUint32(part.connId)
@@ -262,13 +307,13 @@ func deleteAckedParts(reactor: Reactor) =
         minTime = min(minTime, part.queuedTime)
 
       conn.stats.latencyTs.add((reactor.time - minTime).float32)
-      conn.sendParts.delete(0, pos - 1)
+      conn.sendParts.delete(0 .. pos - 1)
 
     conn.stats.throughputTs.add(reactor.time, bytesAcked.float64)
 
 proc readParts(reactor: Reactor) =
   var
-    buf = newStringOfCap(reactor.debug.maxUdpPacket + headerSize)
+    buf = newStringOfCap(reactor.maxUdpPacket + HeaderSize)
     host: string
     port: Port
 
@@ -276,17 +321,23 @@ proc readParts(reactor: Reactor) =
     var byteLen: int
     try:
       byteLen = reactor.socket.recvFrom(
-        buf, reactor.debug.maxUdpPacket + headerSize, host, port
+        buf, reactor.maxUdpPacket + HeaderSize, host, port
       )
-    except:
+    except OSError:
       when defined(nettyMagicSleep):
         sleep(1)
       break
 
-    let address = initAddress(host, port.int)
+    if byteLen < 4:
+      # Need a magic word at minimum.
+      continue
 
-    var magic = buf.readUint32(0)
-    if magic == disconnectMagic:
+    let address = initAddress(host, port.int)
+    let magic = buf.readUint32(0)
+
+    if magic == DisconnectMagic:
+      if byteLen < 8:
+        continue
       let connId = buf.readUint32(4)
       var conn = reactor.getConn(connId)
       if conn != nil:
@@ -294,25 +345,32 @@ proc readParts(reactor: Reactor) =
         reactor.connections.delete(reactor.connections.find(conn))
       continue
 
-    if magic == punchMagic:
-      # echo &"Received punch through from {address}"
+    if magic == PunchMagic:
       continue
 
-    if byteLen < headerSize:
-      # A valid packet will have at least the header.
-      # echo &"Received packet of invalid size {reactor.address}"
-      break
+    if byteLen < HeaderSize:
+      continue
+
+    if magic != PartMagic and magic != AckMagic:
+      continue
 
     var part = Part()
     part.sequenceNum = buf.readUint32(4)
     part.connId = buf.readUint32(8)
     part.partNum = buf.readUint16(12)
     part.numParts = buf.readUint16(14)
-    part.data = buf.readStr(16, buf.len - 1)
+    part.data = buf.readStr(HeaderSize, byteLen - HeaderSize)
+
+    if part.numParts == 0 or part.partNum >= part.numParts:
+      continue
 
     var conn = reactor.getConn(part.connId)
     if conn == nil:
-      if magic == partMagic and part.sequenceNum == 0 and part.partNum == 0:
+      if magic == PartMagic and
+        part.sequenceNum == 0 and
+        part.partNum == 0:
+        if reactor.connections.len >= reactor.maxConnections:
+          continue
         conn = newConnection(reactor, address)
         conn.id = part.connId
         reactor.connections.add(conn)
@@ -326,35 +384,44 @@ proc readParts(reactor: Reactor) =
 
     conn.lastActiveTime = reactor.time
 
-    if magic == partMagic:
-      part.acked = true
-      part.ackedTime = reactor.time
-      reactor.sendSpecial(conn, part, ackMagic)
-
-      if part.sequenceNum < conn.recvSequenceNum:
+    if magic == PartMagic:
+      if seqLess(part.sequenceNum, conn.recvSequenceNum):
+        # Already delivered; ACK so the sender stops retrying.
+        part.acked = true
+        part.ackedTime = reactor.time
+        reactor.sendSpecial(conn, part, AckMagic)
         continue
 
       var pos: int
+      var duplicate: bool
       for p in conn.recvParts:
-        if p.sequenceNum > part.sequenceNum:
+        if seqLess(part.sequenceNum, p.sequenceNum):
           break
-
         if p.sequenceNum == part.sequenceNum:
           if p.partNum > part.partNum:
             break
-
           if p.partNum == part.partNum:
-            # Duplicate
-            pos = -1
-            assert p.data == part.data
+            duplicate = true
             break
-
         inc pos
 
-      if pos != -1: # If not a duplicate
-        conn.recvParts.insert(part, pos)
+      if duplicate:
+        # Never assert on network bytes; ACK the part we already have.
+        part.acked = true
+        part.ackedTime = reactor.time
+        reactor.sendSpecial(conn, part, AckMagic)
+        continue
 
-    elif magic == ackMagic:
+      if conn.recvParts.len >= reactor.maxRecvParts:
+        # Receive window full; skip ACK so the sender retries later.
+        continue
+
+      part.acked = true
+      part.ackedTime = reactor.time
+      reactor.sendSpecial(conn, part, AckMagic)
+      conn.recvParts.insert(part, pos)
+
+    elif magic == AckMagic:
       for p in conn.sendParts:
         if p.sequenceNum == part.sequenceNum and
           p.numParts == part.numParts and
@@ -362,10 +429,6 @@ proc readParts(reactor: Reactor) =
           if not p.acked:
             p.acked = true
             p.ackedTime = reactor.time
-
-    else:
-      # Unrecognized packet
-      discard
 
 func combineParts(reactor: Reactor) =
   for conn in reactor.connections.mitems:
@@ -381,7 +444,7 @@ func timeoutConnections(reactor: Reactor) =
   var i = 0
   while i < reactor.connections.len:
     let conn = reactor.connections[i]
-    if conn.lastActiveTime + connTimeout <= reactor.time:
+    if conn.lastActiveTime + ConnTimeout <= reactor.time:
       reactor.deadConnections.add(conn)
       reactor.connections.delete(i)
       continue
@@ -397,14 +460,21 @@ proc tick*(reactor: Reactor) =
   reactor.deadConnections.setLen(0)
   reactor.messages.setLen(0)
 
+  for conn in reactor.connections:
+    conn.stats.inFlight = 0
+    conn.stats.saturated = false
+
   reactor.sendNeededParts()
   reactor.readParts()
   reactor.combineParts()
   reactor.deleteAckedParts()
+  reactor.updateSendStats()
   reactor.timeoutConnections()
 
 func connect*(reactor: Reactor, address: Address): Connection =
   ## Starts a new connection to an address.
+  if reactor.connections.len >= reactor.maxConnections:
+    raise newException(NettyError, "max connections reached")
   result = newConnection(reactor, address)
   result.reactorId = reactor.id
   result.lastActiveTime = reactor.time
@@ -431,13 +501,16 @@ proc sendMagic(
   packet.addUint32(connId)
   packet.addStr(extra)
 
-  reactor.socket.sendTo(address.host, address.port, packet)
+  try:
+    reactor.socket.sendTo(address.host, address.port, packet)
+  except OSError:
+    return
 
 proc disconnect*(reactor: Reactor, conn: Connection) =
   ## Disconnects the connection.
   assert reactor.id == conn.reactorId
   for i in 0 .. 10:
-    reactor.sendMagic(conn.address, disconnectMagic, conn.id)
+    reactor.sendMagic(conn.address, DisconnectMagic, conn.id)
   reactor.deadConnections.add(conn)
   let index = reactor.connections.find(conn)
   if index != -1:
@@ -446,7 +519,7 @@ proc disconnect*(reactor: Reactor, conn: Connection) =
 proc punchThrough*(reactor: Reactor, address: Address) =
   ## Tries to punch through to host/port.
   for i in 0 .. 10:
-    reactor.sendMagic(address, punchMagic, 0, "punch through")
+    reactor.sendMagic(address, PunchMagic, 0, "punch through")
 
 proc punchThrough*(reactor: Reactor, host: string, port: int) =
   ## Tries to punch through to host/port.
@@ -457,7 +530,9 @@ proc newReactor*(address: Address): Reactor =
   result = Reactor()
   result.r = initRand(getMonoTime().ticks)
   result.id = result.genId()
-  result.maxInFlight = defaultMaxInFlight
+  result.maxInFlight = DefaultMaxInFlight
+  result.maxConnections = DefaultMaxConnections
+  result.maxRecvParts = DefaultMaxRecvParts
 
   result.address = address
   result.socket = newSocket(
@@ -472,7 +547,7 @@ proc newReactor*(address: Address): Reactor =
   let (_, portLocal) = result.socket.getLocalAddr()
   result.address.port = portLocal
 
-  result.debug.maxUdpPacket = defaultMaxUdpPacket
+  result.maxUdpPacket = DefaultMaxUdpPacket
 
   result.tick()
 

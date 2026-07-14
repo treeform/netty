@@ -64,7 +64,7 @@ block:
   client.tick()
   doAssert len(server.messages) == 1, $server.messages.len
   doAssert len(server.connections) == 1, $server.connections.len
-  client.debug.tickTime = 1.0 + connTimeout
+  client.debug.tickTime = 1.0 + ConnTimeout
   client.tick()
   doAssert len(client.deadConnections) == 1
   doAssert len(client.connections) == 0
@@ -75,7 +75,7 @@ block:
   var server = newReactor("127.0.0.1", nextPort())
   var client = newReactor("127.0.0.1", nextPort())
 
-  doAssert client.debug.maxUdpPacket == 492
+  doAssert client.maxUdpPacket == 492
   var buffer = "large:"
   for i in 0 ..< 1000:
     buffer.add "<data>"
@@ -175,7 +175,7 @@ block:
   # make sure all messages made it
   doAssert dataToSend.len == 0
 
-  server.debug.tickTime = 1.0 + connTimeout
+  server.debug.tickTime = 1.0 + ConnTimeout
   server.tick()
 
   doAssert len(server.connections) == 0, $server.connections.len
@@ -199,7 +199,7 @@ block:
   var server = newReactor("127.0.0.1", nextPort())
   var client = newReactor("127.0.0.1", nextPort())
 
-  client.debug.maxUdpPacket = 100
+  client.maxUdpPacket = 100
   client.maxInFlight = 10_000
 
   var buffer = "large:"
@@ -212,22 +212,25 @@ block:
 
   doAssert c2s.sendParts.len == 122
 
-  client.tick() # can only send 100 parts due to maxInFlight and maxUdpPacket
+  client.tick() # can only send ~100 parts due to maxInFlight and maxUdpPacket
 
   doAssert c2s.stats.saturated == true
+  doAssert c2s.stats.inFlight <= client.maxInFlight,
+    &"stats.inFlight: {c2s.stats.inFlight}"
 
   server.tick() # receives 100 parts, sends acks back
 
   doAssert server.messages.len == 1, &"len: {server.messages.len}"
-  doAssert c2s.stats.inFlight < client.maxInFlight,
-    &"stats.inFlight: {c2s.stats.inFlight}"
-  doAssert c2s.stats.saturated == true
 
-  client.tick() # process the 100 acks, 22 parts left in flight
+  client.tick() # process the 100 acks; 22 parts still queued unsent
 
   doAssert c2s.sendParts.len == 22
-  doAssert c2s.stats.inFlight == 2106, &"stats.inFlight: {c2s.stats.inFlight}"
+  doAssert c2s.stats.inFlight == 0, &"stats.inFlight: {c2s.stats.inFlight}"
   doAssert c2s.stats.saturated == false
+
+  client.tick() # send the remaining 22 parts
+
+  doAssert c2s.stats.inFlight == 2106, &"stats.inFlight: {c2s.stats.inFlight}"
 
   server.tick() # process the last 22 parts, send 22 acks
 
@@ -256,7 +259,7 @@ block:
 
   let firstSentTime = c2s.sendParts[0].sentTime
 
-  client.debug.tickTime = epochTime() + ackTime
+  client.debug.tickTime = epochTime() + AckTime
 
   client.tick()
 
@@ -280,7 +283,7 @@ block:
   doAssert server.connections.len == 0
 
   var msg = ""
-  msg.addUint32(partMagic)
+  msg.addUint32(PartMagic)
   msg.addStr("aasdfasdfaasdfaasdfasdfsdfsdasdfasdfsaasdfasdffsadfaasdfasdfa")
 
   client.rawSend(c2s.address, msg)
