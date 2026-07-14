@@ -23,3 +23,5 @@ jobs:
           cd ..
           nimby install -g "${{ github.event.repository.name }}/${{ github.event.repository.name }}.nimble"
       - run: nim r tests/tests.nim
+      - run: nim r tests/test_hardening.nim
+      - run: nim r tests/test_timeseries.nim
