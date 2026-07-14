@@ -13,7 +13,7 @@ const
   AckTime = 0.250     ## Seconds to wait before sending the packet again.
   ConnTimeout = 10.00 ## Seconds to wait until timing-out the connection.
   DefaultMaxUdpPacket = 508 - HeaderSize
-  DefaultMaxInFlight = 25_000
+  DefaultMaxInFlight = 250_000
   DefaultMaxConnections = 1000
   DefaultMaxRecvParts = 1000
 
