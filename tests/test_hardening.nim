@@ -313,4 +313,27 @@ block:
   doAssert server.messages.len == 1
   doAssert server.messages[0].data == "next"
 
+block:
+  # close() tears down the socket and is idempotent.
+  echo "Testing reactor close"
+  var server = newReactor("127.0.0.1", nextPort())
+  var client = newReactor()
+  var c2s = client.connect(server.address)
+  client.send(c2s, "bye")
+  client.tick()
+  server.tick()
+  doAssert server.messages.len == 1
+
+  client.close()
+  doAssert client.socket == nil
+  doAssert client.connections.len == 0
+  client.tick()
+  client.close()
+
+  server.tick()
+  doAssert server.deadConnections.len == 1
+  doAssert server.connections.len == 0
+  server.close()
+  doAssert server.socket == nil
+
 echo "All hardening tests passed"

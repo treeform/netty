@@ -230,6 +230,8 @@ func divideAndSend(reactor: Reactor, conn: Connection, data: string) =
 
 proc rawSend(reactor: Reactor, address: Address, packet: string) =
   ## Low level send to a socket.
+  if reactor.socket == nil:
+    return
   if reactor.debug.dropRate != 0:
     if reactor.r.rand(1.0) <= reactor.debug.dropRate:
       return
@@ -451,6 +453,9 @@ func timeoutConnections(reactor: Reactor) =
     inc i
 
 proc tick*(reactor: Reactor) =
+  if reactor.socket == nil:
+    return
+
   if reactor.debug.tickTime != 0:
     reactor.time = reactor.debug.tickTime
   else:
@@ -496,6 +501,8 @@ proc sendMagic(
   connId: uint32,
   extra = ""
 ) =
+  if reactor.socket == nil:
+    return
   var packet = newStringOfCap(4 + 4 + extra.len)
   packet.addUint32(magic)
   packet.addUint32(connId)
@@ -515,6 +522,20 @@ proc disconnect*(reactor: Reactor, conn: Connection) =
   let index = reactor.connections.find(conn)
   if index != -1:
     reactor.connections.delete(index)
+
+proc close*(reactor: Reactor) =
+  ## Closes the UDP socket and clears local connection state.
+  if reactor.socket != nil:
+    let conns = reactor.connections
+    for conn in conns:
+      for i in 0 .. 10:
+        reactor.sendMagic(conn.address, DisconnectMagic, conn.id)
+    reactor.socket.close()
+    reactor.socket = nil
+  reactor.connections.setLen(0)
+  reactor.newConnections.setLen(0)
+  reactor.deadConnections.setLen(0)
+  reactor.messages.setLen(0)
 
 proc punchThrough*(reactor: Reactor, address: Address) =
   ## Tries to punch through to host/port.
