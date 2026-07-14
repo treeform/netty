@@ -39,20 +39,20 @@ block:
 
   # client should have part ACK:false
   doAssert client.connections[0].sendParts.len == 1
-  doAssert client.connections[0].recvParts.len == 0
+  doAssert client.connections[0].recvPartCount == 0
 
   server.tick() # get message, ack message
   client.tick() # get ack
 
   # client should not have any parts now, acked parts deleted
   doAssert client.connections[0].sendParts.len == 0
-  doAssert client.connections[0].recvParts.len == 0
+  doAssert client.connections[0].recvPartCount == 0
 
   # id should match
   doAssert server.connections[0].id == client.connections[0].id
 
 block:
-  # Text single client disconnect.
+  # Test single client disconnect.
   var server = newReactor("127.0.0.1", nextPort())
   var client = newReactor()
   client.debug.tickTime = 1.0
@@ -61,9 +61,11 @@ block:
   client.send(c2s, "hi")
   client.tick()
   server.tick()
-  client.tick()
   doAssert len(server.messages) == 1, $server.messages.len
   doAssert len(server.connections) == 1, $server.connections.len
+  # Drain ACKs so a late packet does not refresh lastActiveTime.
+  client.tick()
+  client.tick()
   client.debug.tickTime = 1.0 + ConnTimeout
   client.tick()
   doAssert len(client.deadConnections) == 1

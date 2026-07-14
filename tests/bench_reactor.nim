@@ -1,12 +1,15 @@
 ## Server-side reactor benchmarks.
 ##
+## Target scale: 10k connections (Istrolid1 peaked ~3k concurrent players;
+## Istrolid2 should clear that with headroom).
+##
 ## One server, one client socket, many logical connections. Measures server
-## tick cost so later perf work (tables, deques, pooling) has a baseline.
+## tick cost so later perf work has a comparable baseline.
 ##
 ## Run (release, no macOS recv sleep):
 ##   nim r -d:release -d:nettyBench tests/bench_reactor.nim
 ## Optional scale:
-##   nim r -d:release -d:nettyBench tests/bench_reactor.nim 2000
+##   nim r -d:release -d:nettyBench tests/bench_reactor.nim 1000
 ##
 ## Checked-in baseline (compare after perf changes):
 ##   docs/bench-baseline.md
@@ -48,7 +51,7 @@ proc bumpTime(reactor: Reactor, dt = 0.001) =
 proc maxParts(reactor: Reactor): (int, int) =
   var recvMax, sendMax: int
   for conn in reactor.connections:
-    recvMax = max(recvMax, conn.recvParts.len)
+    recvMax = max(recvMax, conn.recvPartCount)
     sendMax = max(sendMax, conn.sendParts.len)
   (recvMax, sendMax)
 
@@ -63,32 +66,60 @@ proc openPair(maxConns: int): (Reactor, Reactor) =
   client.tick()
   (server, client)
 
+proc refreshActivity(server, client: Reactor) =
+  let st = server.currentTime()
+  let ct = client.currentTime()
+  for conn in server.connections:
+    conn.lastActiveTime = st
+  for conn in client.connections:
+    conn.lastActiveTime = ct
+
 proc establish(
   server, client: Reactor,
   count: int,
   payload = "x"
 ): seq[Connection] =
   result = newSeqOfCap[Connection](count)
+  client.maxInFlight = 1_000_000_000
+  server.maxInFlight = 1_000_000_000
+  let batch = 16
   for i in 0 ..< count:
     let conn = client.connect(server.address)
     client.send(conn, payload)
     result.add(conn)
-    # Keep time alive and flush in batches so the socket buffer stays sane.
-    if i mod 64 == 63:
+    if i mod batch == batch - 1:
       client.bumpTime()
       server.bumpTime()
-      drain(server, client, 4)
+      drain(server, client, 16)
+      refreshActivity(server, client)
+      if count >= 1000 and (i < 64 or i mod 2000 == 1999):
+        echo "  establish ", server.connections.len, "/", count,
+          " (client ", client.connections.len, ")"
+
+  # Flush a trailing partial batch.
+  client.bumpTime()
+  server.bumpTime()
+  drain(server, client, 64)
+  refreshActivity(server, client)
 
   var guard = 0
-  while server.connections.len < count and guard < 10_000:
-    client.bumpTime()
-    server.bumpTime()
+  let guardMax = max(10_000, count)
+  while server.connections.len < count and guard < guardMax:
+    if guard mod 32 == 31:
+      client.bumpTime(AckTime)
+      server.bumpTime(AckTime)
+    else:
+      client.bumpTime()
+      server.bumpTime()
     client.tick()
     server.tick()
+    refreshActivity(server, client)
     inc guard
+    if guard mod 5000 == 0:
+      echo "  establish ", server.connections.len, "/", count
 
   doAssert server.connections.len == count,
-    &"wanted {count} conns, got {server.connections.len}"
+    &"wanted {count} conns, got {server.connections.len} after {guard} drains"
 
 proc measureServerTicks(
   server, client: Reactor,
@@ -292,27 +323,20 @@ proc main() =
     if paramCount() >= 1:
       parseInt(paramStr(1))
     else:
-      1000
+      10_000
 
   let
     idleConns = scale
     activeConns = max(1, scale div 2)
     fanConns = 4
     measureTicks = 200
-    churnCycles = max(100, scale div 2)
+    # Churn cost grows linearly; keep it bounded at large scale.
+    churnCycles = max(100, min(2000, scale div 2))
 
   echo "netty reactor bench"
   echo &"  scale={scale} idleConns={idleConns} activeConns={activeConns}"
   echo &"  fanConns={fanConns} measureTicks={measureTicks} churnCycles={churnCycles}"
   echo "  compile with: nim r -d:release -d:nettyBench tests/bench_reactor.nim"
-
-  # Warm localhost UDP path.
-  block:
-    let (server, client) = openPair(8)
-    discard establish(server, client, 4)
-    drain(server, client, 20)
-    client.close()
-    server.close()
 
   var rows: seq[BenchRow]
   rows.add benchIdle(idleConns, measureTicks)

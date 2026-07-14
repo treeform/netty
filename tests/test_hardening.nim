@@ -102,8 +102,8 @@ block:
   client.tick()
   server.tick()
 
-  doAssert server.connections[0].recvParts.len <= server.maxRecvParts,
-    $server.connections[0].recvParts.len
+  doAssert server.connections[0].recvPartCount <= server.maxRecvParts,
+    $server.connections[0].recvPartCount
 
 block:
   # Duplicate part with different bytes must not AssertionDefect.
@@ -126,7 +126,7 @@ block:
   )
   client.tick()
   server.tick()
-  doAssert server.connections[0].recvParts.len == 1
+  doAssert server.connections[0].recvPartCount == 1
 
   # Same seq/part, different payload — must not assert.
   client.rawSend(
@@ -135,8 +135,8 @@ block:
   )
   client.tick()
   server.tick()
-  doAssert server.connections[0].recvParts.len == 1
-  doAssert server.connections[0].recvParts[0].data == "real"
+  doAssert server.connections[0].recvPartCount == 1
+  doAssert server.connections[0].recvPending[1].slots[0].data == "real"
   doAssert server.messages.len == 0
 
 block:
@@ -290,7 +290,7 @@ block:
   let conn = server.connections[0]
   # Pretend we have already accepted messages up through high(uint32).
   conn.recvSequenceNum = 0
-  conn.recvParts.setLen(0)
+  conn.clearRecv()
 
   # Inject a part that is "behind" after wrap using serial comparison.
   # After recvSequenceNum = 5, sequence 4 is old and must be ignored.
@@ -302,7 +302,7 @@ block:
   client.tick()
   server.tick()
   doAssert server.messages.len == 0
-  doAssert conn.recvParts.len == 0
+  doAssert conn.recvPartCount == 0
 
   client.rawSend(
     server.address,
