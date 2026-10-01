@@ -317,6 +317,8 @@ block:
   # close() tears down the socket and is idempotent.
   echo "Testing reactor close"
   var server = newReactor("127.0.0.1", nextPort())
+  # Keep time fixed so only a disconnect packet can remove the connection.
+  server.debug.tickTime = 1.0
   var client = newReactor()
   var c2s = client.connect(server.address)
   client.send(c2s, "bye")
@@ -330,8 +332,14 @@ block:
   client.tick()
   client.close()
 
-  server.tick()
+  # Local UDP delivery can take more than one tick on macOS.
+  for i in 0 ..< 100:
+    server.tick()
+    if server.deadConnections.len > 0:
+      break
+    sleep(1)
   doAssert server.deadConnections.len == 1
+  doAssert server.deadConnections[0].id == c2s.id
   doAssert server.connections.len == 0
   server.close()
   doAssert server.socket == nil
