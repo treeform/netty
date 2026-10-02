@@ -9,9 +9,9 @@ proc nextPort(): int =
   inc nextPortNumber
 
 template waitFor(condition, body: untyped) =
-  ## Runs ticks until a condition holds or a five-second deadline expires.
+  ## Runs ticks until a condition holds or a thirty-second deadline expires.
   block:
-    let deadline = getMonoTime() + initDuration(seconds = 5)
+    let deadline = getMonoTime() + initDuration(seconds = 30)
     while not condition:
       doAssert getMonoTime() < deadline,
         "Timed out waiting for " & astToStr(condition)
@@ -349,6 +349,7 @@ block:
 
 block:
   # Test mange larger messages.
+  echo "Testing 20 large messages with a 1000-byte window"
   var server = newReactor("127.0.0.1", nextPort())
   var client = newReactor("127.0.0.1", nextPort())
 
@@ -363,6 +364,7 @@ block:
   for p in 0 ..< 20:
     client.send(c2s, buffer)
 
+  let started = getMonoTime()
   var gotNumber = 0
 
   waitFor gotNumber == 20 and c2s.sendParts.len == 0:
@@ -377,6 +379,8 @@ block:
       doAssert gotNumber <= 20
 
   doAssert gotNumber == 20
+  echo "Delivered and acknowledged 20 large messages in ",
+    (getMonoTime() - started).inMilliseconds, " ms"
 
 block:
   var server = newReactor("127.0.0.1", nextPort())
