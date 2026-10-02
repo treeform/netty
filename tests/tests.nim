@@ -8,6 +8,17 @@ proc nextPort(): int =
   result = nextPortNumber
   inc nextPortNumber
 
+template waitFor(condition, body: untyped) =
+  ## Runs ticks until a condition holds or a five-second deadline expires.
+  block:
+    let deadline = getMonoTime() + initDuration(seconds = 5)
+    while not condition:
+      doAssert getMonoTime() < deadline,
+        "Timed out waiting for " & astToStr(condition)
+      body
+      if not condition:
+        sleep(1)
+
 block:
   # Text simple send.
   var server = newReactor("127.0.0.1", nextPort())
@@ -15,7 +26,8 @@ block:
   var c2s = client.connect(server.address)
   client.send(c2s, "hi")
   client.tick()
-  server.tick()
+  waitFor server.messages.len > 0:
+    server.tick()
   doAssert server.messages.len == 1
   doAssert server.messages[0].data == "hi"
 
@@ -32,7 +44,8 @@ block:
 
   client.send(c2s, "hey you")
   client.tick()
-  server.tick()
+  waitFor server.messages.len > 0:
+    server.tick()
 
   # server should have message
   doAssert server.messages.len == 1
@@ -41,8 +54,8 @@ block:
   doAssert client.connections[0].sendParts.len == 1
   doAssert client.connections[0].recvPartCount == 0
 
-  server.tick() # get message, ack message
-  client.tick() # get ack
+  waitFor client.connections[0].sendParts.len == 0:
+    client.tick()
 
   # client should not have any parts now, acked parts deleted
   doAssert client.connections[0].sendParts.len == 0
@@ -60,12 +73,13 @@ block:
   var c2s = client.connect(server.address)
   client.send(c2s, "hi")
   client.tick()
-  server.tick()
+  waitFor server.messages.len > 0:
+    server.tick()
   doAssert len(server.messages) == 1, $server.messages.len
   doAssert len(server.connections) == 1, $server.connections.len
   # Drain ACKs so a late packet does not refresh lastActiveTime.
-  client.tick()
-  client.tick()
+  waitFor c2s.sendParts.len == 0:
+    client.tick()
   client.debug.tickTime = 1.0 + ConnTimeout
   client.tick()
   doAssert len(client.deadConnections) == 1
@@ -85,13 +99,14 @@ block:
   var c2s = client.connect(server.address)
   client.send(c2s, buffer)
 
-  for i in 0 ..< 10:
+  var got = 0
+  waitFor got == 1 and c2s.sendParts.len == 0:
     client.tick()
     server.tick()
-
     for msg in server.messages:
-      # large packets match
       doAssert msg.data == buffer
+      inc got
+      doAssert got == 1
 
 block:
   # Stress test many messages.
@@ -164,16 +179,17 @@ block:
     client.tick()
 
   server.debug.tickTime = 1.0
-  server.tick()
+  var newCount = 0
+  waitFor server.connections.len == 100:
+    server.tick()
+    newCount += server.newConnections.len
+    for msg in server.messages:
+      let index = dataToSend.find(msg.data)
+      doAssert index != -1
+      dataToSend.delete(index)
 
   doAssert len(server.connections) == 100
-  doAssert len(server.newConnections) == 100
-
-  for msg in server.messages:
-    var index = dataToSend.find(msg.data)
-    # make sure message is there
-    doAssert index != -1
-    dataToSend.delete(index)
+  doAssert newCount == 100
   # make sure all messages made it
   doAssert dataToSend.len == 0
 
@@ -191,7 +207,8 @@ block:
   client.punchThrough(server.address)
   client.send(c2s, "hi")
   client.tick()
-  server.tick()
+  waitFor server.messages.len > 0:
+    server.tick()
   doAssert server.messages.len == 1
   doAssert server.messages[0].data == "hi"
 
@@ -214,28 +231,33 @@ block:
 
   doAssert c2s.sendParts.len == 122
 
-  client.tick() # can only send ~100 parts due to maxInFlight and maxUdpPacket
+  client.tick()
 
   doAssert c2s.stats.saturated == true
   doAssert c2s.stats.inFlight <= client.maxInFlight,
     &"stats.inFlight: {c2s.stats.inFlight}"
 
-  server.tick() # receives first window, sends acks back
-  var got = server.messages.len
-  doAssert got >= 1, &"len: {got}"
+  # Without a server tick there are no ACKs, so the window must stay full.
+  let queued = c2s.stats.inQueue
+  doAssert queued > 0
+  client.tick()
+  doAssert c2s.sendParts.len == 122
+  doAssert c2s.stats.inQueue == queued
+  doAssert c2s.stats.saturated
+  doAssert c2s.stats.inFlight <= client.maxInFlight
 
-  client.tick() # process acks; remaining parts still queued unsent
-  doAssert c2s.sendParts.len > 0
-  doAssert c2s.sendParts.len < 122
-  doAssert c2s.stats.saturated == false
-
-  # Finish delivery; macOS localhost may need extra ticks for ACK bundles.
-  var guard = 0
-  while c2s.sendParts.len > 0 and guard < 100:
+  # ACKs can arrive across ticks, and messages are cleared by each tick.
+  var got = 0
+  waitFor c2s.sendParts.len == 0 and got == 2:
     client.tick()
+    doAssert client.connections.len == 1
+    doAssert c2s.stats.inFlight <= client.maxInFlight
     server.tick()
-    got += server.messages.len
-    inc guard
+    for msg in server.messages:
+      doAssert msg.data == buffer
+      doAssert msg.sequenceNum == got.uint32
+      inc got
+      doAssert got <= 2
 
   doAssert c2s.sendParts.len == 0, &"sendParts left: {c2s.sendParts.len}"
   doAssert c2s.stats.inFlight == 0, &"stats.inFlight: {c2s.stats.inFlight}"
@@ -303,21 +325,26 @@ block:
 
   client.send(c2s, "hi")
   client.tick()
-  server.tick()
+  waitFor server.messages.len > 0:
+    server.tick()
 
   doAssert len(server.messages) == 1
   doAssert len(server.connections) == 1
   doAssert len(client.connections) == 1
 
+  # A timeout must not satisfy the remote disconnect assertion.
+  server.debug.tickTime = server.time
   client.disconnect(c2s)
 
   doAssert len(client.deadConnections) == 1
   doAssert len(client.connections) == 0
 
   client.tick()
-  server.tick()
+  waitFor server.deadConnections.len > 0:
+    server.tick()
 
   doAssert len(server.deadConnections) == 1
+  doAssert server.deadConnections[0].id == c2s.id
   doAssert len(server.connections) == 0
 
 block:
@@ -338,14 +365,16 @@ block:
 
   var gotNumber = 0
 
-  while true:
+  waitFor gotNumber == 20 and c2s.sendParts.len == 0:
     client.tick()
+    doAssert client.connections.len == 1
+    doAssert c2s.stats.inFlight <= client.maxInFlight
     server.tick()
-    gotNumber += server.messages.len
     for msg in server.messages:
       doAssert msg.data == buffer
-    if client.connections.len == 0:
-      break
+      doAssert msg.sequenceNum == gotNumber.uint32
+      inc gotNumber
+      doAssert gotNumber <= 20
 
   doAssert gotNumber == 20
 
